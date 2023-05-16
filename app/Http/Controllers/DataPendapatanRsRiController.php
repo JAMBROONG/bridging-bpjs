@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataPendapatanRsRi;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DataPendapatanRsRiController extends Controller
 {
@@ -12,7 +14,16 @@ class DataPendapatanRsRiController extends Controller
      */
     public function index()
     {
-        //
+        $users = User::with('dataPendapatanRsRi')->get();
+
+        $dataPendapatans = DataPendapatanRsRi::with('user')->get();
+
+        $result = [
+            'users' => $users->toArray(),
+            'data_pendapatans' => $dataPendapatans->toArray(),
+        ];
+
+        return $result;
     }
 
     /**
@@ -21,6 +32,18 @@ class DataPendapatanRsRiController extends Controller
     public function create()
     {
         //
+    }
+    public function shifftingShow()
+    {
+        $user = Auth::user();
+        $dataPendapatan = $user->dataPendapatan;
+
+        $result = [
+            'user' => $user,
+            'data_pendapatan' => $dataPendapatan,
+        ];
+
+        return $result;
     }
 
     /**

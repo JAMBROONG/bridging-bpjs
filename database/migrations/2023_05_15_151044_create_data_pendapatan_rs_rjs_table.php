@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('data_pendapatan_rs_ris', function (Blueprint $table) {
+        Schema::create('data_pendapatan_rs_rjs', function (Blueprint $table) {
+            
             $table->id();
             $table->integer('rm')->nullable();
             $table->string('notrans', 512)->nullable();
@@ -29,7 +30,6 @@ return new class extends Migration
             $table->string('invoice', 512)->nullable();
             $table->string('bayar', 512)->nullable();
             $table->timestamps();
-            $table->enum('kategori_layanan', ['JP', 'JS'])->nullable();
             $table->enum('klasifikasi', ['obat', 'kamar', 'kamar operasi', 'administrasi', 'faskes'])->nullable();
             $table->unsignedBigInteger('users_id');
             $table->foreign('users_id')->references('id')->on('users')->onDelete('no action')->onUpdate('no action');
@@ -41,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('data_pendapatan_rs_ri');
+        Schema::dropIfExists('data_pendapatan_rs_rjs');
     }
 };
