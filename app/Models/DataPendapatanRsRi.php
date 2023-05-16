@@ -14,7 +14,7 @@ class DataPendapatanRsRi extends Model
      *
      * @var string
      */
-    protected $table = 'data_pendapatan_rs_ri';
+    protected $table = 'data_pendapatan_rs_ris';
 
     /**
      * The attributes that are mass assignable.
