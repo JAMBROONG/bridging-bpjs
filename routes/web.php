@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\DataPendapatanRsRiController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -30,10 +29,19 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/shifting', function () {
+    return Inertia::render('Shifting');
+})->middleware(['auth', 'verified'])->name('shifting');
+
+Route::get('/distribution', function () {
+    return Inertia::render('Distribution');
+})->middleware(['auth', 'verified'])->name('distribution');
+Route::get('/about', function () {
+    return Inertia::render('About');
+})->middleware(['auth', 'verified'])->name('about');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/shifting', [DataPendapatanRsRiController::class, 'shiftingShow'])->name('shifting.show');
-    Route::post('/upload-shifting', [DataPendapatanRsRiController::class, 'upload_shifting'])->name('shifting.upload');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });

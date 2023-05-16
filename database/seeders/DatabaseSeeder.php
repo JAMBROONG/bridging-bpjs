@@ -40,9 +40,9 @@ class DatabaseSeeder extends Seeder
             // Tambahkan data lainnya jika diperlukan
         ];
         // Memasukkan data ke dalam tabel 'users'
-        // foreach ($users as $user) {
-        //     User::create($user);
-        // }
+        foreach ($users as $user) {
+            User::create($user);
+        }
         // Membuat contoh data untuk tabel 'data_pendapatan_rs_ris'
         $dataPendapatan = [
             [

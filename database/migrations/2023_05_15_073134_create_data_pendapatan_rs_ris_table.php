@@ -32,7 +32,7 @@ return new class extends Migration
             $table->enum('kategori_layanan', ['JP', 'JS'])->nullable();
             $table->enum('klasifikasi', ['obat', 'kamar', 'kamar operasi', 'administrasi', 'faskes'])->nullable();
             $table->unsignedBigInteger('users_id');
-            $table->foreign('users_id')->references('id')->on('users')->onDelete('no action')->onUpdate('no action');
+            $table->foreign('users_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

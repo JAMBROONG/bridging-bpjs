@@ -5,9 +5,8 @@ import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link } from '@inertiajs/react';
 
-export default function Authenticated({ user, header, children }) {
+export default function Authenticated({ user, header, children,navActive }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
-
     return (
         <div className="min-h-screen bg-gray-100">
             <nav className="bg-white border-b border-gray-100">
@@ -21,8 +20,17 @@ export default function Authenticated({ user, header, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink href={route('dashboard')} active={route().current('dashboard')}>
+                                <NavLink href={route('dashboard')}>
                                     Dashboard
+                                </NavLink>
+                                <NavLink href={route('shifting')}>
+                                    Shifting
+                                </NavLink>
+                                <NavLink href={route('distribution')}>
+                                    Distribution
+                                </NavLink>
+                                <NavLink href={route('about')}>
+                                    About
                                 </NavLink>
                             </div>
                         </div>
