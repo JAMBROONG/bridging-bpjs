@@ -13,7 +13,17 @@ return new class extends Migration
     {
         Schema::create('data_klaim_bpjs_rjs', function (Blueprint $table) {
             $table->id();
+            $table->date('tanggal_masuk');
+            $table->date('tanggal_pulang');
+            $table->integer('no_rm');
+            $table->string('nama_paseien', 512);
+            $table->string('no_klaim', 512);
+            $table->string('inacbg', 512);
+            $table->double('total_tarif');
+            $table->double('tarif_rs');
             $table->timestamps();
+            $table->unsignedBigInteger('users_id');
+            $table->foreign('users_id')->references('id')->on('users')->onDelete('no action')->onUpdate('no action');
         });
     }
 

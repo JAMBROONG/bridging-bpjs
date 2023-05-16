@@ -18,6 +18,21 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'direktur',
+        'tanggal_pendaftaran',
+        'alamat',
+        'telepon',
+        'logo',
+        'website',
+        'kepemilikan',
+        'luas_tanah','luas_bangunan',
+        'kelas',
+        'status_blu',
+        'npwp',
+        'akte_pendirian',
+        'surat_izin_usaha',
+        'nomor_registrasi_bpjs',
+        'klasifikasi_lapangan_usaha',
         'email',
         'password',
     ];

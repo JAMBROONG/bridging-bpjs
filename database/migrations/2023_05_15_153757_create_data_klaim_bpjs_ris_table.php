@@ -13,17 +13,14 @@ return new class extends Migration
     {
         Schema::create('data_klaim_bpjs_ris', function (Blueprint $table) {
             $table->id();
-            $table->string('No.', 512);
-            $table->string('Tgl. Masuk', 512);
-            $table->string('Tgl. Pulang', 512);
-            $table->integer('No. RM');
-            $table->string('Nama Pasien', 512);
-            $table->string('No. Klaim / SEP', 512);
-            $table->string('INACBG', 512);
-            $table->string('Top Up', 512);
-            $table->string('Total Tarif', 512);
-            $table->string('Tarif RS', 512);
-            $table->string('Jenis', 512);
+            $table->date('tanggal_masuk');
+            $table->date('tanggal_pulang');
+            $table->integer('no_rm');
+            $table->string('nama_paseien', 512);
+            $table->string('no_klaim', 512);
+            $table->string('inacbg', 512);
+            $table->double('total_tarif');
+            $table->double('tarif_rs');
             $table->timestamps();
             $table->unsignedBigInteger('users_id');
             $table->foreign('users_id')->references('id')->on('users')->onDelete('no action')->onUpdate('no action');
