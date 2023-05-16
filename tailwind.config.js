@@ -1,10 +1,6 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 import daisyui from 'daisyui';
-<<<<<<< HEAD
-=======
-
->>>>>>> 3038bfcf046dad8ae0977ca0a7a7c42db2e75eef
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
@@ -21,10 +17,5 @@ export default {
             },
         },
     },
-
-<<<<<<< HEAD
-    plugins: [forms,daisyui],
-=======
     plugins: [daisyui],
->>>>>>> 3038bfcf046dad8ae0977ca0a7a7c42db2e75eef
 };
