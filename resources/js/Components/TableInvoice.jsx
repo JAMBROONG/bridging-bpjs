@@ -9,7 +9,7 @@ const TableInvoice = () => {
     };
 
     return (
-        <div className="flex justify-center flex-col mt-5">
+        <div className="overflow-x-auto mt-5">
             <table className="table table-compact w-full">
                 {/* head */}
                 <thead>

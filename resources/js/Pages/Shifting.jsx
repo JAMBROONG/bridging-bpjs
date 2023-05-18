@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
+import axios from 'axios';
 import React, { useState } from 'react';
 
 export default function Shifting({ auth }) {
@@ -11,6 +11,7 @@ export default function Shifting({ auth }) {
   const [file1, setFile1] = useState(null);
   const [file2, setFile2] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleServiceChange = (e) => {
     setService(e.target.value);
@@ -44,16 +45,69 @@ export default function Shifting({ auth }) {
     e.preventDefault();
     if (service !== '' && isValidFile1 && isValidFile2) {
       setCurrentStep('Proccess');
+      setIsLoading(true);
 
       const formData = new FormData();
       formData.append('file1', file1);
       formData.append('file2', file2);
       try {
-        const response = await Inertia.post('/upload-shifting', formData);
-        setSuccessMessage('File berhasil diunggah dan diproses.');
+        const response = await axios.post('/upload-shifting', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        const mergedData = Object.values(response.data);
+
+        // Membuat array elemen untuk menampilkan data
+        const dataElements = (
+          <table className='table table-compact w-full'>
+            <thead>
+              <tr>
+                <th>RM</th>
+                <th>NOTRANS</th>
+                <th>TANGGAL</th>
+                <th>PASIEN</th>
+                <th>UNIT</th>
+                <th>FAKTUR</th>
+                <th>PRODUK</th>
+                <th>KLS TARIF</th>
+                <th>OBAT</th>
+                <th>QTY</th>
+                <th>TARIP</th>
+                <th>JUMLAH</th>
+                <th>DOKTER</th>
+                <th>PENJAMIN</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mergedData[0].map((item, index) => (
+                <tr key={index}>
+                  <th>{item.rm}</th>
+                  <td>{item.no_transaksi}</td>
+                  <td>{item.tanggal}</td>
+                  <td>{item.pasien}</td>
+                  <td>{item.unit}</td>
+                  <td>{item.faktur}</td>
+                  <td>{item.produk}</td>
+                  <td>{item.kls_tarif}</td>
+                  <td>{item.obat}</td>
+                  <td>{item.qty}</td>
+                  <td>{item.tarip}</td>
+                  <td>{item.jumlah}</td>
+                  <td>{item.dokter}</td>
+                  <td>{item.penjamin}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+        setSuccessMessage(dataElements);
+        setIsLoading(false);
       } catch (error) {
         // Tangani error yang terjadi
         console.error(error);
+        setIsLoading(false);
       }
     } else {
       // Tampilkan pesan error atau lakukan tindakan lain jika ada validasi yang tidak terpenuhi
@@ -89,7 +143,7 @@ export default function Shifting({ auth }) {
                     </select>
                   </div>
                   <div className="mb-5 flex-1 flex items-end justify-end">
-                    <a href='' className='btn btn-sm p-1 rounded'><i className="fas fa-download" /> template</a>
+                    <a href='' className='md:inline-block md:w-auto block w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'><i className="fas fa-download mr-3" /> template</a>
                   </div>
                 </div>
                 <div className="flex flex-col w-full lg:flex-row">
@@ -113,13 +167,13 @@ export default function Shifting({ auth }) {
                     </div>
                   </div>
                 </div>
-                <button type="submit" className="btn btn-primary btn-sm mt-3" disabled={service === '' || !isValidFile1 || !isValidFile2}>
-                  Upload
+                <button type="submit" className={`${isLoading ? 'btn loading btn-sm mt-3' : 'md:inline-block md:w-auto block w-full btn btn-primary btn-sm mt-3'}`} disabled={service === '' || !isValidFile1 || !isValidFile2}>
+                  {isLoading ? 'Loading' : 'Upload'}
                 </button>
-                {successMessage && (
-                  <div className="success-message">{successMessage}</div>
-                )}
               </form>
+              {successMessage && (
+                <div className="mt-5 overflow-x-auto shadow-md">{successMessage}</div>
+              )}
             </div>
           </div>
         </div>
