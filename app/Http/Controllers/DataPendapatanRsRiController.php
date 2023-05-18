@@ -27,7 +27,6 @@ class DataPendapatanRsRiController extends Controller
     public function shiftingShow()
     {
         $users = User::with('dataPendapatanRsRi')->get();
-
         $dataPendapatans = DataPendapatanRsRi::with('user')->get();
         return Inertia::render('Shifting/Shifting');
     }

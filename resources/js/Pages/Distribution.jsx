@@ -1,13 +1,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 
-export default function Dashboard({ auth }) {
+export default function Distribution({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
         >
             <Head title="Distribution" />
-            <div className="py-12">
+            <div className="py-12 bg-base-200">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <h1 className="text-5xl font-bold text-center mb-5">Distribution</h1>
                     <div className="card bg-base-100 shadow-sm">
