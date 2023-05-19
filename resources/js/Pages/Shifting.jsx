@@ -1,7 +1,8 @@
+import CardShiftingNonBPJS from '@/Components/CardShiftingNonBPJS';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState,useEffect  } from 'react';
 
 export default function Shifting({ auth }) {
   const [service, setService] = useState('');
@@ -56,51 +57,10 @@ export default function Shifting({ auth }) {
             'Content-Type': 'multipart/form-data',
           },
         });
-
         const mergedData = Object.values(response.data);
-
         // Membuat array elemen untuk menampilkan data
         const dataElements = (
-          <table className='table table-compact w-full'>
-            <thead>
-              <tr>
-                <th>RM</th>
-                <th>NOTRANS</th>
-                <th>TANGGAL</th>
-                <th>PASIEN</th>
-                <th>UNIT</th>
-                <th>FAKTUR</th>
-                <th>PRODUK</th>
-                <th>KLS TARIF</th>
-                <th>OBAT</th>
-                <th>QTY</th>
-                <th>TARIP</th>
-                <th>JUMLAH</th>
-                <th>DOKTER</th>
-                <th>PENJAMIN</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mergedData[0].map((item, index) => (
-                <tr key={index}>
-                  <th>{item.rm}</th>
-                  <td>{item.no_transaksi}</td>
-                  <td>{item.tanggal}</td>
-                  <td>{item.pasien}</td>
-                  <td>{item.unit}</td>
-                  <td>{item.faktur}</td>
-                  <td>{item.produk}</td>
-                  <td>{item.kls_tarif}</td>
-                  <td>{item.obat}</td>
-                  <td>{item.qty}</td>
-                  <td>{item.tarip}</td>
-                  <td>{item.jumlah}</td>
-                  <td>{item.dokter}</td>
-                  <td>{item.penjamin}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <CardShiftingNonBPJS data={response.data.dataRsNoBpjs}/>
         );
         setSuccessMessage(dataElements);
         setIsLoading(false);
@@ -113,7 +73,10 @@ export default function Shifting({ auth }) {
       // Tampilkan pesan error atau lakukan tindakan lain jika ada validasi yang tidak terpenuhi
     }
   };
-
+  useEffect(() => {
+    // Set CSRF token pada header permintaan
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  }, []);
   return (
     <AuthenticatedLayout user={auth.user}>
       <Head title="Shifting" />
@@ -136,14 +99,14 @@ export default function Shifting({ auth }) {
                       <span className="text-xl font-semibold">Pilih Layanan</span>
                     </label>
                     <br />
-                    <select className="select select-bordered w-full max-w-xs" value={service} onChange={handleServiceChange}>
+                    <select className="select select-bordered w-full max-w-xs" name='layanan' value={service} onChange={handleServiceChange}>
                       <option value="" disabled>Pilih Layanan</option>
                       <option value="Rawat Inap">Rawat Inap</option>
                       <option value="Rawat Jalan">Rawat Jalan</option>
                     </select>
                   </div>
                   <div className="mb-5 flex-1 flex items-end justify-end">
-                    <a href='' className='md:inline-block md:w-auto block w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'><i className="fas fa-download mr-3" /> template</a>
+                    <a href='' className='md:inline-block md:w-auto block w-full bg-blue-500 hover:bg-blue-700 text-white font-bold btn-sm py-1 px-2 rounded'><i className="fas fa-download mr-3" /> template</a>
                   </div>
                 </div>
                 <div className="flex flex-col w-full lg:flex-row">
@@ -172,7 +135,7 @@ export default function Shifting({ auth }) {
                 </button>
               </form>
               {successMessage && (
-                <div className="mt-5 overflow-x-auto shadow-md">{successMessage}</div>
+                <div className="mt-5">{successMessage}</div>
               )}
             </div>
           </div>

@@ -23,6 +23,9 @@
         "@fortawesome/fontawesome-svg-core": "^6.4.0",
         "@inertiajs/inertia": "^0.11.1",
         "csrf": "^3.1.0",
-        "daisyui": "^2.51.6"
+        "daisyui": "^2.51.6",
+        "html2canvas": "^1.4.1",
+        "jspdf": "^2.5.1",
+        "xlsx": "^0.18.5"
     }
 }
