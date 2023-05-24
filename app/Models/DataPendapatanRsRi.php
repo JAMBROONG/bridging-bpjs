@@ -46,7 +46,7 @@ class DataPendapatanRsRi extends Model
     /**
      * Get the user that owns the data pendapatan rs ris.
      */
-    public function user()
+    public function dataPendapatanRsRi()
     {
         return $this->belongsTo(User::class, 'users_id');
     }

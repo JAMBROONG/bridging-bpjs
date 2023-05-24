@@ -9,7 +9,6 @@ export default function Authenticated({ user, header, children, navActive }) {
         <div className="min-h-screen  bg-base-300">
             <nav className=" max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="navbar bg-base-300">
-                    
                     <div className="navbar-start md:hidden">
                         <div className="dropdown">
                             <label tabIndex={0} className="btn btn-ghost btn-circle">
@@ -29,6 +28,11 @@ export default function Authenticated({ user, header, children, navActive }) {
                                 <li>
                                     <ResponsiveNavLink href={route('distribution')} as="button">
                                         Distribution
+                                    </ResponsiveNavLink>
+                                </li>
+                                <li>
+                                    <ResponsiveNavLink href={route('set-service-type')} as="button">
+                                        Set Service Type
                                     </ResponsiveNavLink>
                                 </li>
                                 <li tabIndex={0}>
@@ -68,6 +72,29 @@ export default function Authenticated({ user, header, children, navActive }) {
                             </li>
                             <li tabIndex={0}>
                                 <a>
+                                    Data Master
+                                    <svg className="fill-current" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>
+                                </a>
+                                <ul className="p-2 bg-base-300 z-40">
+                                    <li>
+                                        <ResponsiveNavLink href={route('set-service-type')} as="button">
+                                            Set Service Type
+                                        </ResponsiveNavLink>
+                                    </li>
+                                    <li>
+                                        <ResponsiveNavLink href={route('js')} as="button">
+                                            Setting JS
+                                        </ResponsiveNavLink>
+                                    </li>
+                                    <li>
+                                        <ResponsiveNavLink href={route('jp')} as="button">
+                                            Setting JP
+                                        </ResponsiveNavLink>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li tabIndex={0}>
+                                <a>
                                     About
                                     <svg className="fill-current" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg>
                                 </a>
@@ -87,7 +114,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                         <ul className="menu menu-horizontal px-1">
                             <li>{user.name}
                             </li>
-                            </ul>
+                        </ul>
                         <div className="dropdown dropdown-end">
                             <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
                                 <div className="w-10 rounded-full">

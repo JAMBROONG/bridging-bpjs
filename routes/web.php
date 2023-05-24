@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\App;
+use App\Http\Controllers\JasaPelayananController;
+use App\Http\Controllers\JasaSaranaController;
+use App\Http\Controllers\JenisJasaAkunController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -42,10 +44,19 @@ Route::get('/application', function () {
 })->middleware(['auth', 'verified'])->name('application');
 
 Route::middleware('auth')->group(function () {
+    Route::delete('/service-types/{id}', [JenisJasaAkunController::class, 'destroy'])->name('service-types.destroy');
+    Route::get('/service-types/{id}/edit', [JenisJasaAkunController::class, 'edit'])->name('service-types.edit');
+    Route::post('/service-types', [JenisJasaAkunController::class, 'store'])->name('service-types.store');
+    Route::get('/service-types', [JenisJasaAkunController::class, 'get'])->name('service-types.get');
+    Route::post('/use-template', [JenisJasaAkunController::class, 'useTemplate'])->name('use-template.get');
     Route::get('/dashboard', [App::class, 'index'])->name('dashboard');
+    Route::get('/js', [JasaSaranaController::class, 'index'])->name('js');
+    Route::get('/jp', [JasaPelayananController::class, 'index'])->name('jp');
+    Route::post('/submit-percentage', [JasaPelayananController::class, 'submitPercentage'])->name('submit-percentage');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/upload-shifting', [App::class, 'uploadShifting'])->name('uploadShifting');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/set-service-type', [JenisJasaAkunController::class, 'index'])->name('set-service-type');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

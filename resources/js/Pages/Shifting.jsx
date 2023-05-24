@@ -2,7 +2,7 @@ import CardShiftingNonBPJS from '@/Components/CardShiftingNonBPJS';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import React, { useState,useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Shifting({ auth }) {
   const [service, setService] = useState('');
@@ -13,7 +13,6 @@ export default function Shifting({ auth }) {
   const [file2, setFile2] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
   const handleServiceChange = (e) => {
     setService(e.target.value);
   };
@@ -60,12 +59,13 @@ export default function Shifting({ auth }) {
         const mergedData = Object.values(response.data);
         // Membuat array elemen untuk menampilkan data
         const dataElements = (
-          <CardShiftingNonBPJS data={response.data.dataRsNoBpjs}/>
+          <CardShiftingNonBPJS data={response.data.dataRsNoBpjs} />
         );
         setSuccessMessage(dataElements);
         setIsLoading(false);
+        setCurrentStep('Export File');
       } catch (error) {
-        // Tangani error yang terjadi
+        setCurrentStep('Import File');
         console.error(error);
         setIsLoading(false);
       }
@@ -85,8 +85,8 @@ export default function Shifting({ auth }) {
           <div className="text-center mb-5">
             <h1 className="text-5xl font-bold text-center mb-5">Shifting</h1>
             <ul className="steps">
-              <li className={`step ${currentStep === 'Import File' || 'Proccess' ? 'step-primary' : ''} mr-5`}>Import File</li>
-              <li className={`step ${currentStep === 'Proccess' ? 'step-primary' : ''}`}>Proccess</li>
+              <li className={`step ${currentStep === 'Import File' || currentStep === 'Proccess' || currentStep === 'Export File' ? 'step-primary' : ''}`}>Import File</li>
+              <li className={`step ${currentStep === 'Proccess' || currentStep === 'Export File' ? 'step-primary' : ''}`}>Proccess</li>
               <li className={`step ${currentStep === 'Export File' ? 'step-primary' : ''}`}>Export File</li>
             </ul>
           </div>

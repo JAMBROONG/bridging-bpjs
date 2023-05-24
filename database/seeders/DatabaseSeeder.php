@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\DataPendapatanRsRi;
 use App\Models\Invoices;
 use App\Models\Subscribe;
+use App\Models\TemplateKelasTarif;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
@@ -117,5 +118,31 @@ class DatabaseSeeder extends Seeder
         foreach ($invoices as $invoice) {
             Invoices::create($invoice);
         }
+        $kelas_tarif_khanza = [
+            ['akun' => 'Administrasi', 'jenis_jasa' => 'JS'],
+            ['akun' => 'Administrasi Rawat Inap', 'jenis_jasa' => 'JS'],
+            ['akun' => 'Akomodasi', 'jenis_jasa' => 'JS'],
+            ['akun' => 'Pemeriksaan/Konsultasi Dokter', 'jenis_jasa' => 'JP'],
+            ['akun' => 'Pengambilan Sampel Darah', 'jenis_jasa' => 'JS'],
+            ['akun' => 'Tindakan Dokter', 'jenis_jasa' => 'JP'],
+            ['akun' => 'Tindakan Keperawatan', 'jenis_jasa' => 'JP'],
+            ['akun' => 'Pemeriksaan Lab', 'jenis_jasa' => 'JS'],
+            ['akun' => 'Pemeriksaan Radiologi', 'jenis_jasa' => 'JS'],
+            ['akun' => 'Operasi', 'jenis_jasa' => 'JP'],
+            ['akun' => 'Obat & BHP', 'jenis_jasa' => 'JS'],
+        ];
+
+        $data = [];
+
+        foreach ($kelas_tarif_khanza as $kelas_tarif) {
+            $data[] = [
+                'kelas_tarif' => $kelas_tarif['akun'],
+                'template' => 'Khanza',
+                'jenis_jasa' => $kelas_tarif['jenis_jasa'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        TemplateKelasTarif::insert($data);
     }
     }

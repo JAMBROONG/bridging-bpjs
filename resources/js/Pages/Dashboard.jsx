@@ -2,7 +2,8 @@ import TableInvoice from '@/Components/TableInvoice';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 
-export default function Dashboard({ auth }) {
+export default function Dashboard({ auth, percentage }) {
+    console.log(percentage);
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -43,15 +44,43 @@ export default function Dashboard({ auth }) {
                     </div>
                 </div>
                 <div className="py-12 bg-current">
-                    <div className="grid  grid-cols-1 items-center gap-1 md:grid-cols-2 md:gap-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid  grid-cols-1 items-start gap-1 md:grid-cols-2 md:gap-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="">
                             <div className="alert shadow-lg rounded p-2">
                                 <div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <i className="fa-solid fa-file-invoice-dollar"/>
                                     <span>Invoices</span>
                                 </div>
                             </div>
                             <TableInvoice />
+                        </div>
+                        <div className="flex justify-around items-start">
+                            <div className="stats shadow  w-full m-3 mt-0">
+                                <div className="stat">
+                                    <div className="stat-figure text-secondary">
+                                        <div className="avatar online">
+                                            <div className="w-16 rounded-full">
+                                                <img src="https://img.freepik.com/free-vector/ambulance-flat-style_23-2147958337.jpg?w=826&t=st=1684867317~exp=1684867917~hmac=dc7d955f232c6bfe2251b24df009d7a8fc2c1ff87f08f73c5143db0a56b7a266" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="stat-value">{percentage[0].js}%</div>
+                                    <div className="stat-title">Jasa Sarana</div>
+                                </div>
+                            </div>
+                            <div className="stats shadow w-full m-3 mt-0">
+                                <div className="stat">
+                                    <div className="stat-figure text-secondary">
+                                        <div className="avatar online">
+                                            <div className="w-16 rounded-full">
+                                                <img src="https://img.freepik.com/free-photo/doctor-man-consulting-patient-while-filling-up-application-form-desk-hospital_1150-12966.jpg?w=1380&t=st=1684866558~exp=1684867158~hmac=661f3a0c1bbfec6c1e9436d72fc04216edc93040b5eecf941bae310c61ca4fd2" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="stat-value">{percentage[0].jp}%</div>
+                                    <div className="stat-title">Jasa Pelayanan</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

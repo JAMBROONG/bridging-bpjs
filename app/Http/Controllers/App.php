@@ -2,21 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PercentageJsJp;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
-
 
 class App extends Controller
 {
     public function index()
     {
         $userId = Auth::id(); // Mendapatkan ID user yang sedang login
-        return Inertia::render('Dashboard', []);
+        $data = PercentageJsJp::where('user_id', $userId)->get();
+        return Inertia::render('Dashboard', [
+            'percentage' => $data
+        ]);
     }
     public function uploadShifting(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         $request->validate([
             'file1' => 'required|file|mimes:xlsx,xls',
             'file2' => 'required|file|mimes:xlsx,xls',
@@ -159,7 +164,7 @@ class App extends Controller
         }
 
         usort($data1, function ($a, $b) {
-            return $a['rm'] - $b['rm'];
+            return strcmp($a['rm'], $b['rm']);
         });
         usort($array_NoBPJS, function ($a, $b) {
             return strcmp($a['pasien'], $b['pasien']);

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\mitrans_usage;
+use App\Models\TemplateKelasTarif;
 use Illuminate\Http\Request;
 
-class MitransUsageController extends Controller
+class TemplateKelasTarifController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +34,7 @@ class MitransUsageController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(mitrans_usage $mitrans_usage)
+    public function show(TemplateKelasTarif $templateKelasTarif)
     {
         //
     }
@@ -42,7 +42,7 @@ class MitransUsageController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(mitrans_usage $mitrans_usage)
+    public function edit(TemplateKelasTarif $templateKelasTarif)
     {
         //
     }
@@ -50,7 +50,7 @@ class MitransUsageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, mitrans_usage $mitrans_usage)
+    public function update(Request $request, templateKelasTarif $templateKelasTarif)
     {
         //
     }
@@ -58,7 +58,7 @@ class MitransUsageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(mitrans_usage $mitrans_usage)
+    public function destroy(TemplateKelasTarif $templateKelasTarif)
     {
         //
     }
