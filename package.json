@@ -22,6 +22,7 @@
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.4.0",
         "@inertiajs/inertia": "^0.11.1",
+        "animate.css": "^4.1.1",
         "buffer": "^6.0.3",
         "csrf": "^3.1.0",
         "daisyui": "^2.51.6",

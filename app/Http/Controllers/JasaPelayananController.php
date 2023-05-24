@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DataDokter;
 use Illuminate\Support\Facades\Auth;
 use App\Models\JasaPelayanan;
+use App\Models\PercentageJlJtl;
 use App\Models\PercentageJsJp;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+
 
 class JasaPelayananController extends Controller
 {
@@ -18,41 +21,54 @@ class JasaPelayananController extends Controller
     {
         $userId = Auth::id();
         $data = PercentageJsJp::where('user_id', $userId)->get();
+        $data_jp = PercentageJlJtl::where('user_id', $userId)->get();
+        $data_dokter = DataDokter::where('user_id', $userId)->get();
         return Inertia::render('JasaPelayanan', [
-            'data' => $data
+            'data' => $data,
+            'data_jp' => $data_jp,
+            'data_dokter' => $data_dokter
         ]);
     }
     public function submitPercentage(Request $request)
 {
-    // Memvalidasi input persentase
+    
     $request->validate([
-        'percentage' => 'required|numeric|between:1,100'
+        'percentage' => 'required|numeric|between:1,100',
+    ], [
+        'percentage.required' => 'Persentase harus diisi.',
+        'percentage.numeric' => 'Persentase harus berupa angka.',
+        'percentage.between' => 'Persentase harus berada dalam rentang 1 hingga 100.',
     ]);
 
     $userId = Auth::id();
-
+    $percentage = PercentageJsJp::firstOrNew(['user_id' => $userId]);
+    $percentage->jp = $request->percentage;
+    $percentage->js = 100 - $request->percentage;
+    $percentage->save();
+    return response()->json(['data' => $request->percentage]);
+}
+    public function submitPercentageJlJtl(Request $request)
+{
+    $request->validate([
+        'percentage' => 'required|numeric|between:1,100',
+    ], [
+        'percentage.required' => 'Persentase harus diisi.',
+        'percentage.numeric' => 'Persentase harus berupa angka.',
+        'percentage.between' => 'Persentase harus berada dalam rentang 1 hingga 100.',
+    ]);
+    
+    $userId = Auth::id();
     // Mencari data persentase berdasarkan ID pengguna yang sedang login
-    $percentage = PercentageJsJp::where('user_id', $userId)->first();
+    $percentage = PercentageJlJtl::firstOrNew(['user_id' => $userId]);
+    $percentage->jl = $request->percentage;
+    $percentage->jtl = 100 - $request->percentage;
+    $percentage->save();
 
-    if ($percentage) {
-        // Jika data persentase sudah ada, lakukan operasi update
-        $percentage->update([
-            'js' => 100 - $request->percentage,
-            'jp' => $request->percentage
-        ]);
-
-        // Berikan respons sesuai kebutuhan Anda (misalnya, berhasil diperbarui)
-        return response()->json(['data' => $request->percentage]);
-    } else {
-        // Jika data persentase belum ada, lakukan operasi create
-        PercentageJsJp::create([
-            'js' => 100 - $request->percentage,
-            'jp' => $request->percentage
-        ]);
-
-        // Berikan respons sesuai kebutuhan Anda (misalnya, berhasil dibuat)
-        return response()->json(['data' => $request->percentage]);
-    }
+    return response()->json( [
+        'jl' => $request->percentage,
+        'jtl' => 100 - $request->percentage
+    ]);
+        
 }
 
     /**

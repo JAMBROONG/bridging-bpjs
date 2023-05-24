@@ -1,6 +1,7 @@
 import './bootstrap';
 import '../css/app.css';
 import '../css/fortawesome/font-awesome/css/all.css';
+import 'animate.css';
 
 import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';

@@ -10,14 +10,14 @@ const TableInvoice = () => {
 
     return (
         <div className="overflow-x-auto mt-5">
-            <table className="table table-compact w-full">
+            <table className="table shadow-sm table-compact w-full">
                 {/* head */}
                 <thead>
                     <tr>
-                        <th></th>
-                        <th>Keterangan</th>
-                        <th>Jenis Pembayaran</th>
-                        <th>Tanggal Pembayaran</th>
+                        <th  className='bg-base-300'></th>
+                        <th  className='bg-base-300'>Keterangan</th>
+                        <th  className='bg-base-300'>Jenis Pembayaran</th>
+                        <th  className='bg-base-300'>Tanggal Pembayaran</th>
                     </tr>
                 </thead>
                 <tbody>

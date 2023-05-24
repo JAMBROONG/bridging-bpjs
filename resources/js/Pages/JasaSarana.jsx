@@ -16,7 +16,7 @@ export default function JasaSarana({ auth,data }) {
                                 <p className="py-6">Memberikan Solusi Sarana Terbaik untuk Rumah Sakit Anda</p>
                             </div>
                             <div className="flex-1 text-center">
-                                <h1 className="text-8xl">{ data ? data[0].js + "%" :"0%" }</h1>
+                                <h1 className="text-8xl">{ data[0] && data[0].js ? data[0].js + "%" :"0%" }</h1>
                             </div>
                         </div>
                     </div>

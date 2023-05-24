@@ -2,8 +2,8 @@ import TableInvoice from '@/Components/TableInvoice';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 
-export default function Dashboard({ auth, percentage }) {
-    console.log(percentage);
+export default function Dashboard({  auth, data, data_jp, data_dokter }) {
+    console.log(data);
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -11,7 +11,7 @@ export default function Dashboard({ auth, percentage }) {
             <Head title="Dashboard" />
             <div className="bg-base-200">
                 <div className="py-12 grid  grid-cols-1 items-center gap-1 md:grid-cols-2 md:gap-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div>
+                    <div className='animate__animated animate__fadeInUp animate__slow'>
                         <div className='p-4'>
                             <h1 className="text-5xl ">Bridging BPJS</h1>
                             <p className="py-6">Cocok untuk Klinik, Rumah Sakit, Puskesmas, Apotek, Laboratorium dan Klinik Kecantikan
@@ -19,7 +19,7 @@ export default function Dashboard({ auth, percentage }) {
                             <label className="btn btn-primary" htmlFor="my-modal-3">Get Started</label>
                         </div>
                     </div>
-                    <div className="card w-100  image-full p-3">
+                    <div className="card w-100  image-full p-3 animate__animated animate__fadeInUp animate__slow">
                         <figure style={{ aspectRatio: '2/1' }}>
                             <img
                                 src="https://demos.creative-tim.com/soft-ui-dashboard-react/static/media/ivancik.442b474727c414bb3b85.jpg"
@@ -43,10 +43,10 @@ export default function Dashboard({ auth, percentage }) {
                         <p className="py-4">You've been selected for a chance to get one year of subscription to use Wikipedia for free!</p>
                     </div>
                 </div>
-                <div className="py-12 bg-current">
+                <div className="py-12">
                     <div className="grid  grid-cols-1 items-start gap-1 md:grid-cols-2 md:gap-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="">
-                            <div className="alert shadow-lg rounded p-2">
+                        <div className="animate__animated animate__fadeInUp animate__slow">
+                            <div className="alert shadow-sm rounded p-2  bg-base-100">
                                 <div>
                                     <i className="fa-solid fa-file-invoice-dollar"/>
                                     <span>Invoices</span>
@@ -54,8 +54,8 @@ export default function Dashboard({ auth, percentage }) {
                             </div>
                             <TableInvoice />
                         </div>
-                        <div className="flex justify-around items-start">
-                            <div className="stats shadow  w-full m-3 mt-0">
+                        <div className="flex justify-around items-start animate__animated animate__fadeInUp animate__slow">
+                            <div className="stats  shadow-sm  w-full m-3 mt-0">
                                 <div className="stat">
                                     <div className="stat-figure text-secondary">
                                         <div className="avatar online">
@@ -64,11 +64,11 @@ export default function Dashboard({ auth, percentage }) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="stat-value">{percentage[0].js}%</div>
+                                    <div className="stat-value">{ data[0] && data[0].js ? data[0].js : 0}%</div>
                                     <div className="stat-title">Jasa Sarana</div>
                                 </div>
                             </div>
-                            <div className="stats shadow w-full m-3 mt-0">
+                            <div className="stats  shadow-sm w-full m-3 mt-0">
                                 <div className="stat">
                                     <div className="stat-figure text-secondary">
                                         <div className="avatar online">
@@ -77,7 +77,7 @@ export default function Dashboard({ auth, percentage }) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="stat-value">{percentage[0].jp}%</div>
+                                    <div className="stat-value">{data[0] && data[0].jp? data[0].jp : 0}%</div>
                                     <div className="stat-title">Jasa Pelayanan</div>
                                 </div>
                             </div>

@@ -2,20 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PercentageJsJp;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\DataDokter;
+use App\Models\PercentageJlJtl;
+use App\Models\PercentageJsJp;
 
 class App extends Controller
 {
     public function index()
     {
-        $userId = Auth::id(); // Mendapatkan ID user yang sedang login
+        $userId = Auth::id();
         $data = PercentageJsJp::where('user_id', $userId)->get();
+        $data_jp = PercentageJlJtl::where('user_id', $userId)->get();
+        $data_dokter = DataDokter::where('user_id', $userId)->get();
         return Inertia::render('Dashboard', [
-            'percentage' => $data
+            'data' => $data,
+            'data_jp' => $data_jp,
+            'data_dokter' => $data_dokter
         ]);
     }
     public function uploadShifting(Request $request)
