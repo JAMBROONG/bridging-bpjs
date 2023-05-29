@@ -39,8 +39,17 @@ export default function Dashboard({  auth, data, data_jp, data_dokter }) {
                 <div className="modal">
                     <div className="modal-box relative">
                         <label htmlFor="my-modal-3" className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-                        <h3 className="text-lg font-bold">Congratulations random Internet user!</h3>
-                        <p className="py-4">You've been selected for a chance to get one year of subscription to use Wikipedia for free!</p>
+                        <h3 className="text-lg font-bold">Mau pakai metode apa hari ini? <i className='fas fa-smile'></i> </h3>
+                        <div className="py-4">
+                            <div className="flex">
+                                <div className="flex-1 p-2 pb-0 pl-0">
+                                    <a href={route('shifting')} className="btn btn-block btn-primary">Shifting</a>
+                                </div>
+                                <div className="flex-1 p-2 pb-0 pr-0">
+                                    <a href={route('distribution')} className="btn btn-block btn-primary">Distribution</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="py-12">

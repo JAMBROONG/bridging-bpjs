@@ -9,7 +9,7 @@ export default function Authenticated({ user, header, children, navActive }) {
         <div className="min-h-screen  bg-base-300">
             <nav className=" max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="navbar bg-base-300">
-                    <div className="navbar-start md:hidden">
+                    <div className="flex-1 md:hidden">
                         <div className="dropdown">
                             <label tabIndex={0} className="btn btn-ghost btn-circle">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
@@ -27,7 +27,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                                 </li>
                                 <li>
                                     <ResponsiveNavLink href={route('distribution')} as="button">
-                                        Distribution
+                                        Allocation & Distribution
                                     </ResponsiveNavLink>
                                 </li>
                                 <li>
@@ -53,7 +53,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                             </ul>
                         </div>
                     </div>
-                    <div className="navbar-start hidden md:inline-flex">
+                    <div className="flex-1 hidden md:inline-flex">
                         <ul className="menu menu-horizontal px-1">
                             <li>
                                 <ResponsiveNavLink href={route('dashboard')} as="button">
@@ -67,7 +67,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                             </li>
                             <li>
                                 <ResponsiveNavLink href={route('distribution')} as="button">
-                                    Distribution
+                                    Allocation & Distribution
                                 </ResponsiveNavLink>
                             </li>
                             <li tabIndex={0}>
@@ -97,7 +97,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                                         </ResponsiveNavLink>
                                     </li>
                                     <li>
-                                        <ResponsiveNavLink href={route('jp')} as="button">
+                                        <ResponsiveNavLink href={route('kpi')} as="button">
                                             Data KPI
                                         </ResponsiveNavLink>
                                     </li>
@@ -120,7 +120,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                             </li>
                         </ul>
                     </div>
-                    <div className="navbar-end">
+                    <div className="flex-none">
                         <ul className="menu menu-horizontal px-1">
                             <li>{user.name}
                             </li>

@@ -5,15 +5,28 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Models\DataDokter;
+use App\Models\JenisJasaAkun;
 use App\Models\PercentageJlJtl;
 use App\Models\PercentageJsJp;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
+use Maatwebsite\Excel\Facades\Excel;
+
+use function GuzzleHttp\Promise\all;
 
 class App extends Controller
 {
     public function index()
     {
+        Session::forget('pathPendapatanRI');
+        Session::forget('pathPendapatanRJ');
+        Session::forget('pathBPJSRI');
+        Session::forget('pathBPJSRJ');
+        Session::forget('dataPendapatanRI');
+        Session::forget('dataPendapatanRJ');
+        Session::forget('dataBPJSRI');
+        Session::forget('dataBPJSRJ');
         $userId = Auth::id();
         $data = PercentageJsJp::where('user_id', $userId)->get();
         $data_jp = PercentageJlJtl::where('user_id', $userId)->get();
@@ -24,294 +37,373 @@ class App extends Controller
             'data_dokter' => $data_dokter
         ]);
     }
+    public function dataShifting()
+    {
+        $pathPendapatanRI = Session::get('pathPendapatanRI');
+        $pathPendapatanRJ = Session::get('pathPendapatanRJ');
+        $pathBPJSRI = Session::get('pathBPJSRI');
+        $pathBPJSRJ = Session::get('pathBPJSRJ');
+        $response = [];
+        if ($pathPendapatanRI && $pathBPJSRI) {
+            $dataPendapatanRI = collect($this->getDataPendapatanRS($pathPendapatanRI, 'RI'));
+            $dataBPJSRI = collect($this->getDataBpjs($pathBPJSRI, 'RI'));
+            $array_BPJS_RI = collect($dataPendapatanRI->whereIn('RM', $dataBPJSRI->pluck('No_RM'))->values()->all());
+            
+            $array_PiutangBPJS_RI = collect($dataPendapatanRI->where('PENJAMIN','BPJS')->whereNotIn('RM', $dataBPJSRI->pluck('No_RM'))->values()->all());
+
+            $array_grouped_RI = $array_BPJS_RI->groupBy('PASIEN')->map(function ($items) use ($dataBPJSRI, $dataPendapatanRI) {
+                $rm = $items[0]['RM'];
+                $pasien = $items[0]['PASIEN'];
+
+                $tarifBPJS = $dataBPJSRI->where('No_RM', $rm)->pluck('Total Tarif')->first();
+                $inacbg = $dataBPJSRI->where('No_RM', $rm)->pluck('INACBG')->first();
+                $tarifRS = array_sum($dataPendapatanRI->where('RM', $rm)->pluck('JUMLAH')->all());
+
+                $dataKonversi = $items->map(function ($item) use ($tarifBPJS, $tarifRS) {
+                    $persentase = (intval($item['JUMLAH']) / $tarifRS) * 100;
+                    $jumlahKonversi = ($persentase / 100) * $tarifBPJS;
+                    return [
+                        'JUMLAH' => intval($item['JUMLAH']),
+                        'Persentase' => number_format($persentase, 2) . '%',
+                        'Jumlah_Konversi' => $jumlahKonversi
+                    ];
+                })->values()->all();
+
+                return [
+                    'RM' => $rm,
+                    'PASIEN' => $pasien,
+                    'INACBG' => $inacbg,
+                    'data' => $items->values()->all(),
+                    'Total Tarif' => $tarifBPJS,
+                    'Tarif RS' => $tarifRS,
+                    'data_konversi' => $dataKonversi
+                ];
+            })->values()->all();
+
+            $dataPendapatanRI = collect($this->getDataPendapatanRS($pathPendapatanRI, 'RI'));
+            $dataGrouped = $dataPendapatanRI->groupBy(function ($item) {
+                return trim($item['KLS TARIF']);
+            })->map(function ($items) {
+                $kelasTarif = trim($items[0]['KLS TARIF']);
+                // $jenisJasa = JenisJasaAkun::where('user_id', Auth::id())->where('kelas_tarif', "'$kelasTarif'")->get();
+                $jenisJasa = JenisJasaAkun::where('user_id', Auth::id())
+                    ->where('kelas_tarif', $kelasTarif)
+                    ->pluck('jenis_jasa')
+                    ->first();
+                return [
+                    'data' => $items->values()->all(),
+                    'jenis_jasa' => $jenisJasa
+                ];
+            })->toArray();
+            $dataFiltered_JP = array_filter($dataGrouped, function ($item) {
+                return $item['jenis_jasa'] === "JP";
+            });
+            
+            $dataWithJumlahData_JP = array_map(function ($item) {
+                $jumlahData = count($item['data']);
+                $item['jumlah_data'] = $jumlahData;
+                return $item;
+            }, $dataFiltered_JP);
+            
+            $totalJumlahData_JP = array_reduce($dataWithJumlahData_JP, function ($carry, $item) {
+                return $carry + $item['jumlah_data'];
+            }, 0);
+
+            $dataFiltered_JS = array_filter($dataGrouped, function ($item) {
+                return $item['jenis_jasa'] === "JS";
+            });
+            
+            $dataWithJumlahData_JS = array_map(function ($item) {
+                $jumlahData = count($item['data']);
+                $item['jumlah_data'] = $jumlahData;
+                return $item;
+            }, $dataFiltered_JS);
+            
+            $totalJumlahData_JS = array_reduce($dataWithJumlahData_JS, function ($carry, $item) {
+                return $carry + $item['jumlah_data'];
+            }, 0);
+
+            $response = $response + [
+                'pasienBPJS_RI' => $array_grouped_RI,
+                'totalJPRI' => $totalJumlahData_JP,
+                'totalJSRI' => $totalJumlahData_JS,
+                'piutangBPJS_RI' => $array_PiutangBPJS_RI
+            ];
+        }
+        if ($pathPendapatanRJ && $pathBPJSRJ) {
+            $dataPendapatanRJ = collect($this->getDataPendapatanRS($pathPendapatanRJ, 'RJ'));
+            $dataBPJSRJ = collect($this->getDataBpjs($pathBPJSRJ, 'RJ'));
+            $array_BPJS_RJ = collect($dataPendapatanRJ->whereIn('RM', $dataBPJSRJ->pluck('No_RM'))->values()->all());
+            $array_PiutangBPJS_RJ = collect($dataPendapatanRI->where('PENJAMIN','BPJS')->whereNotIn('RM', $dataBPJSRI->pluck('No_RM'))->values()->all());
+            $array_grouped_RJ = $array_BPJS_RJ->groupBy('PASIEN')->map(function ($items) use ($dataBPJSRJ, $dataPendapatanRJ) {
+                $rm = $items[0]['RM'];
+                $pasien = $items[0]['PASIEN'];
+
+                $tarifBPJS = $dataBPJSRJ->where('No_RM', $rm)->pluck('Total Tarif')->first();
+                $inacbg = $dataBPJSRJ->where('No_RM', $rm)->pluck('INACBG')->first();
+                $tarifRS = array_sum($dataPendapatanRJ->where('RM', $rm)->pluck('JUMLAH')->all());
+
+                $dataKonversi = $items->map(function ($item) use ($tarifBPJS, $tarifRS) {
+                    $persentase = (intval($item['JUMLAH']) / $tarifRS) * 100;
+                    $jumlahKonversi = ($persentase / 100) * $tarifBPJS;
+
+                    return [
+                        'JUMLAH' => intval($item['JUMLAH']),
+                        'Persentase' => number_format($persentase, 2) . '%',
+                        'Jumlah_Konversi' => $jumlahKonversi
+                    ];
+                })->values()->all();
+
+                return [
+                    'RM' => $rm,
+                    'PASIEN' => $pasien,
+                    'INACBG' => $inacbg,
+                    'data' => $items->values()->all(),
+                    'Total Tarif' => $tarifBPJS,
+                    'Tarif RS' => $tarifRS,
+                    'data_konversi' => $dataKonversi
+                ];
+            })->values()->all();
+            $dataPendapatanRJ = collect($this->getDataPendapatanRS($pathPendapatanRJ, 'RJ'));
+            $dataGrouped = $dataPendapatanRJ->groupBy(function ($item) {
+                return trim($item['KLS TARIF']);
+            })->map(function ($items) {
+                $kelasTarif = trim($items[0]['KLS TARIF']);
+                // $jenisJasa = JenisJasaAkun::where('user_id', Auth::id())->where('kelas_tarif', "'$kelasTarif'")->get();
+                $jenisJasa = JenisJasaAkun::where('user_id', Auth::id())
+                    ->where('kelas_tarif', $kelasTarif)
+                    ->pluck('jenis_jasa')
+                    ->first();
+                return [
+                    'data' => $items->values()->all(),
+                    'jenis_jasa' => $jenisJasa
+                ];
+            })->toArray();
+            $dataFiltered_JP = array_filter($dataGrouped, function ($item) {
+                return $item['jenis_jasa'] === "JP";
+            });
+            
+            $dataWithJumlahData_JP = array_map(function ($item) {
+                $jumlahData = count($item['data']);
+                $item['jumlah_data'] = $jumlahData;
+                return $item;
+            }, $dataFiltered_JP);
+            
+            $totalJumlahData_JP = array_reduce($dataWithJumlahData_JP, function ($carry, $item) {
+                return $carry + $item['jumlah_data'];
+            }, 0);
+            
+            $dataFiltered_JS = array_filter($dataGrouped, function ($item) {
+                return $item['jenis_jasa'] === "JS";
+            });
+            
+            $dataWithJumlahData_JS = array_map(function ($item) {
+                $jumlahData = count($item['data']);
+                $item['jumlah_data'] = $jumlahData;
+                return $item;
+            }, $dataFiltered_JS);
+            
+            $totalJumlahData_JS = array_reduce($dataWithJumlahData_JS, function ($carry, $item) {
+                return $carry + $item['jumlah_data'];
+            }, 0);
+
+            $response = $response + [
+                'pasienBPJS_RJ' => $array_grouped_RJ,
+                'totalJPRJ' => $totalJumlahData_JP,
+                'totalJSRJ' => $totalJumlahData_JS,
+                'piutangBPJS_RJ' => $array_PiutangBPJS_RJ
+            ];
+        } else {
+            return redirect()->back();
+        }
+        return Inertia::render('DataShifting', [
+            'data' => $response
+        ]);
+    }
     public function uploadShifting(Request $request)
     {
         ini_set('memory_limit', '1024M');
 
-        $request->validate([
-            'file1' => 'required|file|mimes:xlsx,xls',
-            'file2' => 'required|file|mimes:xlsx,xls',
-        ]);
-        $file1 = $request->file('file1');
-        $file2 = $request->file('file2');
-        $path1 = $file1->store('excels');
-        $path2 = $file2->store('excels');
-        $layanan = $request->input('layanan');
-        // Membaca file pertama
-        $rows1 = Excel::toArray([], $path1);
-        $data1 = [];
-        $headers1 = $rows1[0][0]; // Ambil baris pertama sebagai header
-        foreach ($rows1[0] as $index => $row) {
-            if ($index === 0) {
-                continue; // Skip the header row
-            }
-
-            $data = [];
-            foreach ($row as $key => $value) {
-                switch ($headers1[$key]) {
-                    case 'RM':
-                        $data['rm'] = $value;
-                        break;
-                    case 'NOTRANS':
-                        $data['no_transaksi'] = $value;
-                        break;
-                    case 'TANGGAL':
-                        $data['tanggal'] = $value;
-                        break;
-                    case 'PASIEN':
-                        $data['pasien'] = $value;
-                        break;
-                    case 'UNIT':
-                        $data['unit'] = $value;
-                        break;
-                    case 'FAKTUR':
-                        $data['faktur'] = $value;
-                        break;
-                    case 'PRODUK':
-                        $data['produk'] = $value;
-                        break;
-                    case 'KLS TARIF':
-                        $data['kls_tarif'] = $value;
-                        break;
-                    case 'OBAT':
-                        $data['obat'] = $value;
-                        break;
-                    case 'QTY':
-                        $data['qty'] = $value;
-                        break;
-                    case 'TARIP':
-                        $data['tarip'] = $value;
-                        break;
-                    case 'JUMLAH':
-                        $data['jumlah'] = $value;
-                        break;
-                    case 'DOKTER':
-                        $data['dokter'] = $value;
-                        break;
-                    case 'PENJAMIN':
-                        $data['penjamin'] = $value;
-                        break;
-                    case 'INVOICE':
-                        $data['invoice'] = $value;
-                        break;
-                    case 'BAYAR':
-                        $data['bayar'] = $value;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            $data1[] = $data;
+        if ($request->filePendapatanRI && $request->fileBPJSRI) {
+            $request->validate([
+                'filePendapatanRI' => 'required|file|mimes:xlsx,xls',
+                'fileBPJSRI' => 'required|file|mimes:xlsx,xls'
+            ]);
         }
 
-        // Membaca file kedua
-        $rows2 = Excel::toArray([], $path2);
-        $data2 = [];
-        $headers2 = $rows2[0][0]; // Ambil baris pertama sebagai header
-        foreach ($rows2[0] as $index => $row) {
-            if ($index === 0) {
-                continue; // Skip the header row
-            }
-
-            $data = [];
-            foreach ($row as $key => $value) {
-                switch ($headers2[$key]) {
-                    case 'No.':
-                        $data['no'] = $value;
-                        break;
-                    case 'Tgl. Masuk':
-                        $data['tgl_masuk'] = $value;
-                        break;
-                    case 'Tgl. Pulang':
-                        $data['tgl_pulang'] = $value;
-                        break;
-                    case 'No. RM':
-                        $data['no_rm'] = $value;
-                        break;
-                    case 'Nama Pasien':
-                        $data['nama_pasien'] = $value;
-                        break;
-                    case 'No. Klaim / SEP':
-                        $data['no_klaim_sep'] = $value;
-                        break;
-                    case 'INACBG':
-                        $data['inacbg'] = $value;
-                        break;
-                    case 'Top Up':
-                        $data['top_up'] = $value;
-                        break;
-                    case 'Total Tarif':
-                        $data['total_tarif'] = $value;
-                        break;
-                    case 'Tarif RS':
-                        $data['tarif_rs'] = $value;
-                        break;
-                    case 'Jenis':
-                        $data['jenis'] = $value;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            $data2[] = $data;
-        }
-        $data1 = $this->readDataFromFirstFile($path1);
-        $data2 = $this->readDataFromSecondFile($path2);
-
-        $array_BPJS = [];
-        $array_NoBPJS = [];
-
-        foreach ($data1 as $data) {
-            if ($data['penjamin'] === 'BPJS') {
-                $array_BPJS[] = $data;
-            } else if ($data['penjamin'] === 'UMUM') {
-                $array_NoBPJS[] = $data;
-            }
+        if ($request->filePendapatanRJ && $request->fileBPJSRJ) {
+            $request->validate([
+                'filePendapatanRJ' => 'required|file|mimes:xlsx,xls',
+                'fileBPJSRJ' => 'required|file|mimes:xlsx,xls'
+            ]);
         }
 
-        usort($data1, function ($a, $b) {
-            return strcmp($a['rm'], $b['rm']);
-        });
-        usort($array_NoBPJS, function ($a, $b) {
-            return strcmp($a['pasien'], $b['pasien']);
-        });
-        
-        usort($data2, function ($a, $b) {
-            return $a['no_rm'] - $b['no_rm'];
-        });
+        $file = [
+            'pathPendapatanRI' => "",
+            'pathPendapatanRJ' => "",
+            'pathBPJSRI' => "",
+            'pathBPJSRJ' => ""
+        ];
+
+        if ($request->file('filePendapatanRI') &&  $request->file('fileBPJSRI')) {
+            $file = [
+                'pathPendapatanRI' => Session::get('pathPendapatanRI'),
+                'pathBPJSRI' => Session::get('pathBPJSRI')
+            ];
+            $filePendapatanRI = $request->file('filePendapatanRI');
+            $fileBPJSRI = $request->file('fileBPJSRI');
+            $pathPendapatanRI = $filePendapatanRI->store('uploads');
+            $pathBPJSRI = $fileBPJSRI->store('uploads');
+            Session::put('pathPendapatanRI', $pathPendapatanRI);
+            Session::put('pathBPJSRI', $pathBPJSRI);
+        }
+        if ($request->file('filePendapatanRJ') &&  $request->file('fileBPJSRJ')) {
+            $file = [
+                'pathPendapatanRJ' => Session::get('pathPendapatanRJ'),
+                'pathBPJSRJ' => Session::get('pathBPJSRJ')
+            ];
+            $filePendapatanRJ = $request->file('filePendapatanRJ');
+            $fileBPJSRJ = $request->file('fileBPJSRJ');
+            $pathPendapatanRJ = $filePendapatanRJ->store('uploads');
+            $pathBPJSRJ = $fileBPJSRJ->store('uploads');
+            Session::put('pathPendapatanRJ', $pathPendapatanRJ);
+            Session::put('pathBPJSRJ', $pathBPJSRJ);
+        }
+
+        // Storage::delete([$pathPendapatanRI, $pathPendapatanRJ, $pathBPJSRI, $pathBPJSRJ]);
+
         $response = [
-            'dataRsBpjs' => $array_BPJS,
-            'dataRsNoBpjs' => $array_NoBPJS,
-            'dataBpjs' => $data2,
-            'Jenis Layanan' => $layanan,
+            'message' => 'Data berhasil diupload',
+            'file' => $file
         ];
         return response()->json($response);
     }
-    private function readDataFromSecondFile($filePath)
-    {
-        $rows = Excel::toArray([], $filePath);
-        $data = [];
-        $headers = $rows[0][0]; // Ambil baris pertama sebagai header
 
+    public function piutangTakTertagih()
+    {
+
+        Session::forget('dataPendapatanRI');
+        Session::forget('dataPendapatanRJ');
+        Session::forget('dataBPJSRI');
+        Session::forget('dataBPJSRJ');
+
+        $pathPendapatanRI = Session::get('pathPendapatanRI');
+        $pathPendapatanRJ = Session::get('pathPendapatanRJ');
+        $pathBPJSRI = Session::get('pathBPJSRI');
+        $pathBPJSRJ = Session::get('pathBPJSRJ');
+        $response = [];
+        if ($pathPendapatanRI && $pathBPJSRI) {
+            $dataPendapatanRI = collect($this->getDataPendapatanRS($pathPendapatanRI, 'RI'));
+            $dataBPJSRI = collect($this->getDataBpjs($pathBPJSRI, 'RI'));
+            $array_nonBPJS_RI = collect($dataPendapatanRI->whereNotIn('RM', $dataBPJSRI->pluck('No_RM'))->values()->all());
+            $array_grouped_RI = $array_nonBPJS_RI->groupBy('PASIEN')->map(function ($items) {
+                return [
+                    'PASIEN' => $items[0]['PASIEN'],
+                    'data' => $items->values()->all()
+                ];
+            })->values()->all();
+            $response = $response + [
+                'dataPiutang_RI' => $array_grouped_RI
+            ];
+        }
+        if ($pathPendapatanRJ && $pathBPJSRJ) {
+            $dataPendapatanRJ = collect($this->getDataPendapatanRS($pathPendapatanRJ, 'RJ'));
+            $dataBPJSRJ = collect($this->getDataBpjs($pathBPJSRJ, 'RJ'));
+
+            $array_nonBPJS_RJ = collect($dataPendapatanRJ->whereNotIn('RM', $dataBPJSRJ->pluck('No_RM'))->all());
+
+            $array_grouped_RJ = $array_nonBPJS_RJ->groupBy('PASIEN')->map(function ($items) {
+                return [
+                    'PASIEN' => $items[0]['PASIEN'],
+                    'data' => $items->values()->all()
+                ];
+            })->values()->all();
+            $response = $response + [
+                'dataPiutang_RJ' => $array_grouped_RJ
+            ];
+        }
+
+        if ($response) {
+            return Inertia::render('PiutangBPJS', [
+                'dataPiutang' => $response
+            ]);
+        } else {
+            return redirect()->back();
+        }
+    }
+    // private function readDataFromFile($filePath, $headers)
+    // {
+    //     $rows = Excel::toArray([], $filePath);
+    //     $data = [];
+    //     $headerRow = $rows[0][0]; // Ambil baris pertama sebagai header
+    //     foreach ($rows[0] as $index => $row) {
+    //         if ($index === 0) {
+    //             continue; // Skip the header row
+    //         }
+    //         // Validasi jika baris kosong, lewati
+    //         if (empty(array_filter($row))) {
+    //             continue;
+    //         }
+    //         $rowData = [];
+    //         foreach ($row as $key => $value) {
+    //             if (isset($headers[$key])) {
+    //                 $header = $headerRow[$key];
+    //                 $rowData[$headers[$key]] = $value;
+    //             }
+    //         }
+    //         $data[] = $rowData;
+    //     }
+
+    //     return $data;
+    // }
+    private  function getDataBpjs($path)
+    {
+        $headers = ['No', 'Tgl_Masuk', 'Tgl_Pulang', 'No_RM', 'Nama_Pasien', 'No_Klaim', 'INACBG', 'Top Up', 'Total Tarif', 'Tarif RS', 'Jenis'];
+        $rows = Excel::toArray([], $path);
+        $data = [];
+        $headerRow = $rows[0][0]; // Ambil baris pertama sebagai header
         foreach ($rows[0] as $index => $row) {
             if ($index === 0) {
                 continue; // Skip the header row
             }
-
-            $rowData = [];
-
-            foreach ($row as $key => $value) {
-                switch ($headers[$key]) {
-                    case 'No.':
-                        $rowData['no'] = $value;
-                        break;
-                    case 'Tgl. Masuk':
-                        $rowData['tgl_masuk'] = $value;
-                        break;
-                    case 'Tgl. Pulang':
-                        $rowData['tgl_pulang'] = $value;
-                        break;
-                    case 'No. RM':
-                        $rowData['no_rm'] = $value;
-                        break;
-                    case 'Nama Pasien':
-                        $rowData['nama_pasien'] = $value;
-                        break;
-                    case 'No. Klaim / SEP':
-                        $rowData['no_klaim_sep'] = $value;
-                        break;
-                    case 'INACBG':
-                        $rowData['inacbg'] = $value;
-                        break;
-                    case 'Top Up':
-                        $rowData['top_up'] = $value;
-                        break;
-                    case 'Total Tarif':
-                        $rowData['total_tarif'] = $value;
-                        break;
-                    case 'Tarif RS':
-                        $rowData['tarif_rs'] = $value;
-                        break;
-                    case 'Jenis':
-                        $rowData['jenis'] = $value;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            $data[] = $rowData;
-        }
-        return $data;
-    }
-
-    private function readDataFromFirstFile($filePath)
-    {
-        $rows = Excel::toArray([], $filePath);
-        $data = [];
-        $headers = $rows[0][0]; // Ambil baris pertama sebagai header
-
-        foreach ($rows[0] as $index => $row) {
-            if ($index === 0) {
+            // Validasi jika baris kosong, lewati
+            if (empty(array_filter($row))) {
                 continue;
             }
-
             $rowData = [];
             foreach ($row as $key => $value) {
-                switch ($headers[$key]) {
-                    case 'RM':
-                        $rowData['rm'] = $value;
-                        break;
-                    case 'NOTRANS':
-                        $rowData['no_transaksi'] = $value;
-                        break;
-                    case 'TANGGAL':
-                        $rowData['tanggal'] = $value;
-                        break;
-                    case 'PASIEN':
-                        $rowData['pasien'] = $value;
-                        break;
-                    case 'UNIT':
-                        $rowData['unit'] = $value;
-                        break;
-                    case 'FAKTUR':
-                        $rowData['faktur'] = $value;
-                        break;
-                    case 'PRODUK':
-                        $rowData['produk'] = $value;
-                        break;
-                    case 'KLS TARIF':
-                        $rowData['kls_tarif'] = $value;
-                        break;
-                    case 'OBAT':
-                        $rowData['obat'] = $value;
-                        break;
-                    case 'QTY':
-                        $rowData['qty'] = $value;
-                        break;
-                    case 'TARIP':
-                        $rowData['tarip'] = $value;
-                        break;
-                    case 'JUMLAH':
-                        $rowData['jumlah'] = $value;
-                        break;
-                    case 'DOKTER':
-                        $rowData['dokter'] = $value;
-                        break;
-                    case 'PENJAMIN':
-                        $rowData['penjamin'] = $value;
-                        break;
-                    case 'INVOICE':
-                        $rowData['invoice'] = $value;
-                        break;
-                    case 'BAYAR':
-                        $rowData['bayar'] = $value;
-                        break;
-                    default:
-                        break;
+                if (isset($headers[$key])) {
+                    $header = $headerRow[$key];
+                    $rowData[$headers[$key]] = $value;
                 }
             }
+            $data[] = $rowData;
+        }
 
+        return $data;
+    }
+    private  function getDataPendapatanRS($path, $type)
+    {
+
+        $headers = ['RM', 'NOTRANS', 'TANGGAL', 'PASIEN', 'UNIT', 'FAKTUR', 'PRODUK', 'KLS TARIF', 'OBAT', 'QTY', 'TARIP', 'JUMLAH', 'DOKTER', 'PENJAMIN', 'INVOICE', 'BAYAR'];
+        $rows = Excel::toArray([], $path);
+        $data = [];
+        $headerRow = $rows[0][0]; // Ambil baris pertama sebagai header
+        foreach ($rows[0] as $index => $row) {
+            if ($index === 0) {
+                continue; // Skip the header row
+            }
+            // Validasi jika baris kosong, lewati
+            if (empty(array_filter($row))) {
+                continue;
+            }
+            $rowData = [];
+            foreach ($row as $key => $value) {
+                if (isset($headers[$key])) {
+                    $header = $headerRow[$key];
+                    $rowData[$headers[$key]] = $value;
+                }
+            }
             $data[] = $rowData;
         }
 

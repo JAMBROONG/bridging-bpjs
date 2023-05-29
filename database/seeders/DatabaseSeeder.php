@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\DataPendapatanRsRi;
 use App\Models\Invoices;
+use App\Models\KpiKategori;
 use App\Models\Subscribe;
 use App\Models\TemplateKelasTarif;
 use Illuminate\Database\Seeder;
@@ -144,5 +145,23 @@ class DatabaseSeeder extends Seeder
             ];
         }
         TemplateKelasTarif::insert($data);
+
+        $kategori = [
+            'Indeks Dasar (Basic Index)',
+            'Indeks Kompetensi dan Kualifikasi',
+            'Indeks Resiko',
+            'Indeks Emergensi',
+            'Indeks Posisi',
+            'Indeks Kinerja dan Disiplin',
+         ];
+
+        $data = [];
+
+        foreach ($kategori as $item) {
+            $data[] = [
+                'kategori' => $item,
+            ];
+        }
+        KpiKategori::insert($data);
     }
     }

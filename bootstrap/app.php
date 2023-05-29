@@ -40,6 +40,9 @@ $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
     App\Exceptions\Handler::class
 );
+// ...
+ini_set('memory_limit', '3G'); // Ganti dengan batas memori yang Anda inginkan
+// ...
 
 /*
 |--------------------------------------------------------------------------

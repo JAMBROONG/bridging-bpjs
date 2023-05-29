@@ -1,21 +1,26 @@
-import CardShiftingNonBPJS from '@/Components/CardShiftingNonBPJS';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import DashboardOutputShifting from '@/Components/DashboardOutputShifting';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-export default function Shifting({ auth }) {
-  const [service, setService] = useState('');
+export default function Shifting({ auth, file }) {
+  console.log(file);
+  const [count, setCount] = useState(Object.values(file).filter(value => value !== null).length);
+  const [currentStep, setCurrentStep] = useState(count > 1 ? 'Export File' : 'Import File');
   const [isValidFile1, setIsValidFile1] = useState(false);
   const [isValidFile2, setIsValidFile2] = useState(false);
-  const [currentStep, setCurrentStep] = useState('Import File');
+  const [isValidFile3, setIsValidFile3] = useState(false);
+  const [isValidFile4, setIsValidFile4] = useState(false);
+  const [dataFile, setDataFile] = useState(file);
   const [file1, setFile1] = useState(null);
   const [file2, setFile2] = useState(null);
+  const [file3, setFile3] = useState(null);
+  const [file4, setFile4] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const handleServiceChange = (e) => {
-    setService(e.target.value);
-  };
 
   const handleFileChange1 = (e) => {
     const file = e.target.files[0];
@@ -32,7 +37,6 @@ export default function Shifting({ auth }) {
   const handleFileChange2 = (e) => {
     const file = e.target.files[0];
     const allowedExtensions = ['.xlsx', '.xls'];
-
     if (file && allowedExtensions.some(ext => file.name.endsWith(ext))) {
       setIsValidFile2(true);
       setFile2(file);
@@ -41,29 +45,67 @@ export default function Shifting({ auth }) {
     }
   };
 
+  const handleFileChange3 = (e) => {
+    const file = e.target.files[0];
+    const allowedExtensions = ['.xlsx', '.xls'];
+
+    if (file && allowedExtensions.some(ext => file.name.endsWith(ext))) {
+      setIsValidFile3(true);
+      setFile3(file);
+    } else {
+      setIsValidFile3(false);
+    }
+  };
+
+  const handleFileChange4 = (e) => {
+    const file = e.target.files[0];
+    const allowedExtensions = ['.xlsx', '.xls'];
+
+    if (file && allowedExtensions.some(ext => file.name.endsWith(ext))) {
+      setIsValidFile4(true);
+      setFile4(file);
+    } else {
+      setIsValidFile4(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (service !== '' && isValidFile1 && isValidFile2) {
+    if (
+      (isValidFile1 && isValidFile3) ||
+      (isValidFile2 && isValidFile4) ||
+      (isValidFile1 && isValidFile2 && isValidFile3 && isValidFile4)
+    ) {
       setCurrentStep('Proccess');
       setIsLoading(true);
 
       const formData = new FormData();
-      formData.append('file1', file1);
-      formData.append('file2', file2);
+      formData.append('filePendapatanRI', file1);
+      formData.append('filePendapatanRJ', file2);
+      formData.append('fileBPJSRI', file3);
+      formData.append('fileBPJSRJ', file4);
       try {
         const response = await axios.post('/upload-shifting', formData, {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'multipart/formdata',
           },
         });
-        const mergedData = Object.values(response.data);
-        // Membuat array elemen untuk menampilkan data
-        const dataElements = (
-          <CardShiftingNonBPJS data={response.data.dataRsNoBpjs} />
-        );
+        setDataFile(response.data.file);
+        const dataElements = <DashboardOutputShifting />;
+        toast.success(response.data.message, {
+          position: 'bottom-right',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        setCount(Object.values(response.data.file).filter(value => value !== null).length);
+        console.log(count);
         setSuccessMessage(dataElements);
-        setIsLoading(false);
         setCurrentStep('Export File');
+        setIsLoading(false);
       } catch (error) {
         setCurrentStep('Import File');
         console.error(error);
@@ -73,10 +115,27 @@ export default function Shifting({ auth }) {
       // Tampilkan pesan error atau lakukan tindakan lain jika ada validasi yang tidak terpenuhi
     }
   };
+
   useEffect(() => {
-    // Set CSRF token pada header permintaan
-    axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  }, []);
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = document
+      .querySelector('meta[name="csrf-token"]')
+      .getAttribute('content');
+    if (
+      dataFile['pathPendapatanRI'] &&
+      dataFile['pathPendapatanRJ'] &&
+      dataFile['pathBPJSRI'] &&
+      dataFile['pathBPJSRJ']
+    ) {
+      setCurrentStep('Export File');
+    }
+  }, [dataFile]);
+
+  // Validasi tambahan untuk mengaktifkan tombol jika kriteria terpenuhi
+  const isButtonActive =
+    (isValidFile1 && isValidFile3) ||
+    (isValidFile2 && isValidFile4) ||
+    (isValidFile1 && isValidFile2 && isValidFile3 && isValidFile4);
+
   return (
     <AuthenticatedLayout user={auth.user}>
       <Head title="Shifting" />
@@ -85,62 +144,145 @@ export default function Shifting({ auth }) {
           <div className="text-center mb-5">
             <h1 className="text-5xl font-bold text-center mb-5">Shifting</h1>
             <ul className="steps">
-              <li className={`step ${currentStep === 'Import File' || currentStep === 'Proccess' || currentStep === 'Export File' ? 'step-primary' : ''}`}>Import File</li>
-              <li className={`step ${currentStep === 'Proccess' || currentStep === 'Export File' ? 'step-primary' : ''}`}>Proccess</li>
-              <li className={`step ${currentStep === 'Export File' ? 'step-primary' : ''}`}>Export File</li>
+              <li
+                className={`step ${currentStep === 'Import File' ||
+                  currentStep === 'Proccess' ||
+                  currentStep === 'Export File'
+                  ? 'step-primary'
+                  : ''
+                  }`}
+              >
+                Import File
+              </li>
+              <li
+                className={`step ${currentStep === 'Proccess' || currentStep === 'Export File' ? 'step-primary' : ''
+                  }`}
+              >
+                Proccess
+              </li>
+              <li className={`step ${currentStep === 'Export File' ? 'step-primary' : ''}`}>
+                Output
+              </li>
             </ul>
           </div>
-          <div className="card bg-base-100 shadow-sm">
-            <div className="card-body">
-              <form onSubmit={handleSubmit}>
-                <div className="flex flex-col w-full lg:flex-row">
-                  <div className="mb-5 flex-1">
-                    <label htmlFor="">
-                      <span className="text-xl font-semibold">Pilih Layanan</span>
-                    </label>
-                    <br />
-                    <select className="select select-bordered w-full max-w-xs" name='layanan' value={service} onChange={handleServiceChange}>
-                      <option value="" disabled>Pilih Layanan</option>
-                      <option value="Rawat Inap">Rawat Inap</option>
-                      <option value="Rawat Jalan">Rawat Jalan</option>
-                    </select>
-                  </div>
-                  <div className="mb-5 flex-1 flex items-end justify-end">
-                    <a href='' className='md:inline-block md:w-auto block w-full bg-blue-500 hover:bg-blue-700 text-white font-bold btn-sm py-1 px-2 rounded'><i className="fas fa-download mr-3" /> template</a>
-                  </div>
-                </div>
-                <div className="flex flex-col w-full lg:flex-row">
-                  <div className="grid flex-grow py-10 card bg-base-300 rounded-box place-items-center">
-                    <div className="form-group text-center">
-                      <label htmlFor="">
-                        <span className="text-xl font-semibold">File Pendapatan RS (Excel)</span>
-                      </label>
-                      <br />
-                      <input type="file" name='file1' accept=".xlsx, .xls" className="file-input mt-3 file-input-bordered w-full max-w-xs" onChange={handleFileChange1} />
-                    </div>
-                  </div>
-                  <div className="divider lg:divider-horizontal">AND</div>
-                  <div className="grid flex-grow py-10 card bg-base-300 rounded-box place-items-center">
-                    <div className="form-group text-center">
-                      <label htmlFor="">
-                        <span className="text-xl font-semibold">File BPJS (Excel)</span>
-                      </label>
-                      <br />
-                      <input type="file" name='file2' accept=".xlsx, .xls" className="file-input mt-3 file-input-bordered w-full max-w-xs" onChange={handleFileChange2} />
-                    </div>
-                  </div>
-                </div>
-                <button type="submit" className={`${isLoading ? 'btn loading btn-sm mt-3' : 'md:inline-block md:w-auto block w-full btn btn-primary btn-sm mt-3'}`} disabled={service === '' || !isValidFile1 || !isValidFile2}>
-                  {isLoading ? 'Loading' : 'Upload'}
-                </button>
-              </form>
-              {successMessage && (
-                <div className="mt-5">{successMessage}</div>
-              )}
+          {count > 1 || successMessage ? (
+            <div className="card bg-base-100 shadow-sm">
+              <div className="card-body">
+                <DashboardOutputShifting file={dataFile} />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="card bg-base-100 shadow-sm">
+              <div className="card-body">
+                <form onSubmit={handleSubmit}>
+                  <div className="flex flex-col w-full lg:flex-row">
+                    <div className="mb-5 flex-1 flex  justify-end">
+                      <a
+                        href="/excel/Template File BPJS.xlsx" download
+                        className="link link-primary text-sm mr-3"
+                      >
+                        <i className="fas fa-download mr-2" /> Template Klaim Bpjs
+                      </a>
+                      <a
+                        href="/excel/Template File Pendapatan RS.xlsx" download
+                        className="link link-primary text-sm"
+                      >
+                        <i className="fas fa-download mr-2" /> Template Pendapatan
+                      </a>
+                    </div>
+                  </div>
+                  <div className="flex flex-col w-full lg:flex-row">
+                    <div className="grid flex-grow py-10 card bg-base-300 rounded-box place-items-center">
+                      <div className="form-group text-center">
+                        <label htmlFor="">
+                          <span className="text-xl font-semibold">Pendapatan RS Rawat Inap</span>
+                        </label>
+                        <br />
+                        <input
+                          type="file"
+                          name="filePendapatanRI"
+                          accept=".xlsx, .xls"
+                          className="file-input mt-3 file-input-bordered w-full max-w-xs"
+                          onChange={handleFileChange1}
+                        />
+                      </div>
+                    </div>
+                    <div className="divider lg:divider-horizontal"></div>
+                    <div className="grid flex-grow py-10 card bg-base-300 rounded-box place-items-center">
+                      <div className="form-group text-center">
+                        <label htmlFor="">
+                          <span className="text-xl font-semibold">Pendapatan RS Rawat Jalan</span>
+                        </label>
+                        <br />
+                        <input
+                          type="file"
+                          name="filePendapatanRJ"
+                          accept=".xlsx, .xls"
+                          className="file-input mt-3 file-input-bordered w-full max-w-xs"
+                          onChange={handleFileChange2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col w-full lg:flex-row mt-5">
+                    <div className="grid flex-grow py-10 card bg-base-300 rounded-box place-items-center">
+                      <div className="form-group text-center">
+                        <label htmlFor="">
+                          <span className="text-xl font-semibold">Klaim BPJS Rawat Inap</span>
+                        </label>
+                        <br />
+                        <input
+                          type="file"
+                          name="fileBPJSRI"
+                          accept=".xlsx, .xls"
+                          className="file-input mt-3 file-input-bordered w-full max-w-xs"
+                          onChange={handleFileChange3}
+                        />
+                      </div>
+                    </div>
+                    <div className="divider lg:divider-horizontal"></div>
+                    <div className="grid flex-grow py-10 card bg-base-300 rounded-box place-items-center">
+                      <div className="form-group text-center">
+                        <label htmlFor="">
+                          <span className="text-xl font-semibold">Klaim BPJS Rawat Jalan</span>
+                        </label>
+                        <br />
+                        <input
+                          type="file"
+                          name="fileBPJSRJ"
+                          accept=".xlsx, .xls"
+                          className="file-input mt-3 file-input-bordered w-full max-w-xs"
+                          onChange={handleFileChange4}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className={`${isLoading ? 'btn loading btn-sm mt-3' : 'md:inline-block md:w-auto block w-full btn btn-primary btn-sm mt-3'
+                      }`}
+                    disabled={!isButtonActive}
+                  >
+                    {isLoading ? 'Loading' : 'Upload'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </AuthenticatedLayout>
   );
 }

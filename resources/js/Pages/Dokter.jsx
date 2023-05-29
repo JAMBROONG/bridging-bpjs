@@ -3,105 +3,19 @@ import { ToastContainer, toast } from 'react-toastify';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import 'react-toastify/dist/ReactToastify.css';
-import TableKPI from '@/Components/TableKPI';
 
 export default function JasaPelayanan({ auth, data, data_jp, data_dokter }) {
-    const [percentage, setPercentage] = useState('');
-    const [percentage2, setPercentage2] = useState('');
     const [tableDokter, setTableDokter] = useState(data_dokter);
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [isSubmitDisabled2, setIsSubmitDisabled2] = useState(true);
-    const [isModalVisible2, setIsModalVisible2] = useState(false);
     const [dataSet, setData] = useState(data); // Tambahkan state untuk data
     const [dataSet_jp, setData_jp] = useState(data_jp); // Tambahkan state untuk data
     const [namaDokter, setNamaDokter] = useState('');
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [deleteDokterId, setDeleteDokterId] = useState(null);
-    const handlePercentageChange = (e) => {
-        const value = e.target.value;
-
-        // Validasi persentase
-        if (value === '' || isNaN(value)) {
-            setIsSubmitDisabled(true);
-        } else {
-            const parsedValue = parseInt(value);
-            setIsSubmitDisabled(parsedValue < 1 || parsedValue > 100);
-        }
-
-        setPercentage(value);
-    };
-    const handlePercentageChange2 = (e) => {
-        const value = e.target.value;
-        // Validasi persentase
-        if (value === '' || isNaN(value)) {
-            setIsSubmitDisabled2(true);
-        } else {
-            const parsedValue = parseInt(value);
-            setIsSubmitDisabled2(parsedValue < 1 || parsedValue > 100);
-        }
-
-        setPercentage2(value);
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // Kirim data ke route (ganti dengan rute yang sesuai)
-        axios
-            .post('/submit-percentage', { percentage })
-            .then((response) => {
-                // Tambahkan logika jika submit berhasil
-                setPercentage('');
-                setIsSubmitDisabled(true);
-                setIsModalVisible(false);
-                toast.success('Data berhasil diperbarui', {
-                    position: 'top-right',
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined
-                });
-                if (response.data.data && response.data.data) {
-                    setData([{ jp: response.data.data }]);
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
 
 
-    const handleSubmit2 = (e) => {
-        e.preventDefault();
 
-        // Kirim data ke route (ganti dengan rute yang sesuai)
-        axios
-            .post('/submit-percentage-jl', { percentage: percentage2 })
-            .then((response) => {
-                // Tambahkan logika jika submit berhasil
-                setPercentage2('');
-                setIsSubmitDisabled2(true);
-                setIsModalVisible2(false);
-                toast.success('Data berhasil diperbarui', {
-                    position: 'top-right',
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined
-                });
-                if (response.data.jl) {
-                    setData_jp([{ jl: response.data.jl, jtl: response.data.jtl }]);
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
     const handleModalSubmit = (e) => {
         e.preventDefault();
 
@@ -120,7 +34,6 @@ export default function JasaPelayanan({ auth, data, data_jp, data_dokter }) {
                     draggable: true,
                     progress: undefined,
                 });
-
                 const newTableDokter = [...tableDokter, response.data.dokter];
                 setTableDokter(newTableDokter);
             })

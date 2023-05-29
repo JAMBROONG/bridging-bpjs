@@ -55,7 +55,7 @@ export default function CardServiceTypeBtnAdd({setServiceTypes, data_template })
 
                 // Show success toast
                 toast.success('Data berhasil ditambahkan', {
-                    position: 'top-right',
+                    position: 'bottom-right',
                     autoClose: 2000,
                     hideProgressBar: false,
                     closeOnClick: true,
@@ -126,18 +126,6 @@ export default function CardServiceTypeBtnAdd({setServiceTypes, data_template })
                     </div>
                 )}
             </div>
-            <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
         </div>
     );
 }

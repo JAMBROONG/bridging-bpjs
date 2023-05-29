@@ -25,7 +25,7 @@ export default function CardServiceType({ data, data_template }) {
                 // Mengupdate state serviceTypes dengan data terbaru dari respons
                 setServiceTypes(response.data.data);
                 toast.success('Data berhasil dihapus', {
-                    position: 'top-right',
+                    position: 'bottom-right',
                     autoClose: 2000,
                     hideProgressBar: false,
                     closeOnClick: true,

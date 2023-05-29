@@ -170,6 +170,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
     ])->toArray(),
+    set_time_limit(120), // Increase the limit to 120 seconds
 
     /*
     |--------------------------------------------------------------------------

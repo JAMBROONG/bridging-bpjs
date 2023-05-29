@@ -5,9 +5,11 @@ use App\Http\Controllers\DataDokterController;
 use App\Http\Controllers\JasaPelayananController;
 use App\Http\Controllers\JasaSaranaController;
 use App\Http\Controllers\JenisJasaAkunController;
+use App\Http\Controllers\KpiDokterController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +33,12 @@ Route::get('/', function () {
 
 Route::get('/shifting', function () {
     return Inertia::render('Shifting',[
-        'response' => "Hallo"
+        'file' => [
+            'pathPendapatanRI' => Session::get('pathPendapatanRI'),
+            'pathPendapatanRJ' => Session::get('pathPendapatanRJ'),
+            'pathBPJSRI' => Session::get('pathBPJSRI'),
+            'pathBPJSRJ' => Session::get('pathBPJSRJ')
+        ]
     ]);
 })->middleware(['auth', 'verified'])->name('shifting');
 
@@ -61,9 +68,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/add-dokter', [DataDokterController::class, 'store'])->name('dokter.store');
     Route::delete('/delete-dokter/{id}', [DataDokterController::class, 'destroy'])->name('dokter.delete');
     
+    // KPI
+    Route::get('/kpi', [KpiDokterController::class, 'index'])->name('kpi');
+    
+
+
     Route::post('/submit-percentage-jl', [JasaPelayananController::class, 'submitPercentageJlJtl'])->name('submit-percentage-jl');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/upload-shifting', [App::class, 'uploadShifting'])->name('uploadShifting');
+    Route::get('/data-shifting', [App::class, 'dataShifting'])->name('data-shifting');
+    Route::get('/piutang-bpjs-tak-tertagih', [App::class, 'piutangTakTertagih'])->name('piutang-bpjs-tak-tertagih');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/set-service-type', [JenisJasaAkunController::class, 'index'])->name('set-service-type');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

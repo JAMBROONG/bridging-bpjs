@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DataDokter;
 use App\Models\KpiDokter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class KpiDokterController extends Controller
 {
@@ -12,7 +15,13 @@ class KpiDokterController extends Controller
      */
     public function index()
     {
-        //
+        $userId = Auth::id();
+        $data_dokter = DataDokter::where('user_id', $userId)->get();
+        $kpi_dokter = KpiDokter::where('user_id', $userId)->get();
+        return Inertia::render('KpiDokter', [
+            'data_dokter' => $data_dokter,
+            'kpi_dokter' => $kpi_dokter
+        ]);
     }
 
     /**
