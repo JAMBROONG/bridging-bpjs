@@ -12,8 +12,8 @@ export default function SetServiceType({ auth, data, data_template }) {
                             <h1 className="text-5xl font-bold">Service Type</h1>
                     </div>
                 </div>
-                <div className="py-12 grid grid-cols-1 gap-1 md:grid-cols-2 md:gap-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-start">
-                    <div className="p-5">
+                <div className="py-12 flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8  items-start">
+                    <div className="p-10 flex-1">
                         <div className="mb-6">
                             <h2 className="text-2xl font-semibold mb-2">Fitur Penentuan Jenis Jasa</h2>
                             <ul className="list-disc ml-6 text-justify">

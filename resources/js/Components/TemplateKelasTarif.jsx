@@ -39,8 +39,9 @@ export default function TemplateKelasTarif({ data_template, setServiceTypes }) {
               <table className="table table-compact w-full">
                 <thead>
                   <tr>
-                    <th>Kelas Tarif</th>
-                    <th>Jenis Jasa</th>
+                    <td>Kelas Tarif</td>
+                    <td>Jenis Jasa</td>
+                    <td>Kategori Pendapatan</td>
                   </tr>
                 </thead>
                 <tbody>
@@ -50,13 +51,14 @@ export default function TemplateKelasTarif({ data_template, setServiceTypes }) {
                       <tr key={itemIndex}>
                         <td>{item.kelas_tarif}</td>
                         <td>{item.jenis_jasa}</td>
+                        <td>{item.kategori_pendapatan.kategori}</td>
                       </tr>
                     ))}
                 </tbody>
               </table>
             </div>
-            <div className="flex justify-end">
-              <a className='btn btn-sm btn-light' onClick={() => handleUseTemplate(template)}>gunakan <i className='fa fa-head'></i></a>
+            <div className="flex justify-end mt-3">
+              <a className='btn btn-sm btn-primary' onClick={() => handleUseTemplate(template)}>gunakan <i className='fa fa-head'></i></a>
             </div>
           </div>
         </div>

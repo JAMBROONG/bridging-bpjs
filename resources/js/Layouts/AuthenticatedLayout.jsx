@@ -26,7 +26,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                                     </ResponsiveNavLink>
                                 </li>
                                 <li>
-                                    <ResponsiveNavLink href={route('distribution')} as="button">
+                                    <ResponsiveNavLink href={route('allocation.distribution')} as="button">
                                         Allocation & Distribution
                                     </ResponsiveNavLink>
                                 </li>
@@ -66,7 +66,7 @@ export default function Authenticated({ user, header, children, navActive }) {
                                 </ResponsiveNavLink>
                             </li>
                             <li>
-                                <ResponsiveNavLink href={route('distribution')} as="button">
+                                <ResponsiveNavLink href={route('allocation.distribution')} as="button">
                                     Allocation & Distribution
                                 </ResponsiveNavLink>
                             </li>

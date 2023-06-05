@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {Head, Link} from "@inertiajs/react";
 import InfiniteScroll from "react-infinite-scroll-component";
-export default function DataShifting({auth, data}) {
+export default function DataDistribution({auth, data}) {
     console.log(data);
     const [hasMore,
         setHasMore] = useState(true);
@@ -59,7 +59,7 @@ export default function DataShifting({auth, data}) {
                     <div className="text-sm breadcrumbs">
                         <ul>
                             <li>
-                                <Link  href={route('shifting')}>
+                                <Link  href={route('allocation.distribution')}>
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
@@ -71,11 +71,11 @@ export default function DataShifting({auth, data}) {
                                             strokeWidth="2"
                                             d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
                                     </svg>
-                                    Shifting
+                                    Allocation & Distribution
                                 </Link>
                             </li>
                             <li>
-                                <Link  href={route('data-shifting')}>
+                                <Link  href={route('data-distribution')}>
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
@@ -87,7 +87,7 @@ export default function DataShifting({auth, data}) {
                                             strokeWidth="2"
                                             d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
                                     </svg>
-                                    Data Shifting
+                                    Data Allocation and Distribution
                                 </Link>
                             </li>
                         </ul>
@@ -95,7 +95,7 @@ export default function DataShifting({auth, data}) {
                     <div className="w-full mt-10">
                         <div className="p-4 flex">
                             <div className="flex-1 animate__animated animate__fadeInUp animate__slow">
-                                <h1 className="text-5xl">Data Sifting</h1>
+                                <h1 className="text-5xl">Data Allocation & Distribution</h1>
                             </div>
                             <div className="flex-1 text-center">
                                 <div className="stats shadow">
@@ -160,7 +160,7 @@ export default function DataShifting({auth, data}) {
                                             )}
                                         </select>
 
-                                        <Link href={route("shifting.all")} className="indicator ml-3">
+                                        <Link href={route("distribution.all")} className="indicator ml-3">
                                             <button className="btn btn-primary">Lihat Laporan Keseluruhan</button>
                                         </Link>
                                     </div>
@@ -221,9 +221,10 @@ export default function DataShifting({auth, data}) {
                                                                 <th className="bg-base-300">KLS TARIF</th>
                                                                 <th className="bg-base-300">DOKTER</th>
                                                                 <th className="bg-base-300">Tarif RS</th>
+                                                                <th className="bg-base-300">Tarif Setelah di Allocation</th>
                                                                 <th className="bg-base-300">Persentase</th>
                                                                 <th className="bg-base-300">
-                                                                    Setelah di Shifting{" "}
+                                                                    Setelah di Konversi{" "}
                                                                 </th>
                                                             </tr>
                                                         </thead>
@@ -238,6 +239,11 @@ export default function DataShifting({auth, data}) {
                                                                         <td className="text-end">
                                                                             {dataItem
                                                                                 .JUMLAH
+                                                                                .toLocaleString("id-ID", {maximumFractionDigits: 0})}
+                                                                        </td>
+                                                                        <td className="text-end">
+                                                                            {dataItem
+                                                                                ['jumlahSetelahDiKonversi']
                                                                                 .toLocaleString("id-ID", {maximumFractionDigits: 0})}
                                                                         </td>
                                                                         <td className="text-end">
@@ -257,6 +263,13 @@ export default function DataShifting({auth, data}) {
                                                                 </td>
                                                                 <td className="text-end bg-base-300">
                                                                     {item["Tarif RS"].toLocaleString("id-ID", {maximumFractionDigits: 0})}
+                                                                </td>
+                                                                <td className="text-end bg-base-300">
+                                                                    
+                                                                {item
+                                                                        .data
+                                                                        .reduce((total, konversiItem) => total + parseFloat(konversiItem.jumlahSetelahDiKonversi), 2)
+                                                                        .toLocaleString("id-ID", {maximumFractionDigits: 0})}
                                                                 </td>
                                                                 <td className="text-end">100%</td>
                                                                 <td className="text-end bg-base-300">

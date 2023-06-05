@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
 
-export default function DashboardOutputShifting(file) {
+export default function DashboardOutputDistribution(file) {
     const [typedText, setTypedText] = useState('Data berhasil diolah, berikut beberapa data yang bisa saya olah:');
     useEffect(() => {
         setTypedText('');
@@ -46,8 +46,8 @@ export default function DashboardOutputShifting(file) {
                             <a className="btn  btn-block bg-base-300">Pendapatan RS Rawat Jalan</a>
                         </div> */}
                         <div className="flex-1 p-2">
-                            <Link href={route('data-shifting')} className="btn  btn-block" as="button">
-                                Seluruh Data Hasil Shifting
+                            <Link href={route('data-distribution')} className="btn  btn-block" as="button">
+                                Seluruh Data Hasil Allocation and Distribution
                             </Link>
                         </div>
                     </div>

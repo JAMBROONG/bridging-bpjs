@@ -16,8 +16,8 @@ class JenisJasaAkunController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        $data = JenisJasaAkun::where('user_id', $userId)->get();
-        $data_template = TemplateKelasTarif::all();
+        $data = JenisJasaAkun::with('kategoriPendapatan')->where('user_id', $userId)->get();
+        $data_template = TemplateKelasTarif::with('kategoriPendapatan')->get();
         return Inertia::render('SetServiceType', [
             'data' => $data,
             'data_template' => $data_template
@@ -26,7 +26,7 @@ class JenisJasaAkunController extends Controller
     public function get()
     {
         $userId = Auth::id();
-        $data = JenisJasaAkun::where('user_id', $userId)->get();
+        $data = JenisJasaAkun::with('kategoriPendapatan')->where('user_id', $userId)->get();
         $response = [
             'data' => $data
         ];
@@ -53,12 +53,12 @@ class JenisJasaAkunController extends Controller
             $serviceType->user_id = $userId;
             $serviceType->kelas_tarif = $item->kelas_tarif;
             $serviceType->jenis_jasa = $item->jenis_jasa;
+            $serviceType->kategori_pendapatans_id = $item->kategori_pendapatans_id;
             $serviceType->save();
-
         }
 
-        
-        $data = JenisJasaAkun::where('user_id', $userId)->get();
+
+        $data = JenisJasaAkun::with('kategoriPendapatan')->where('user_id', $userId)->get();
         $response = [
             'data' => $data
         ];
@@ -81,18 +81,22 @@ class JenisJasaAkunController extends Controller
     {
         $request->validate([
             'kelas_tarif' => 'required',
-            'jenis_jasa' => 'required'
+            'jenis_jasa' => 'required',
+            'kategori_pendapatan_id' => 'required'
         ]);
 
         // Membuat objek ServiceType baru
         $serviceType = new JenisJasaAkun();
         $serviceType->kelas_tarif = $request->kelas_tarif;
         $serviceType->jenis_jasa = $request->jenis_jasa;
+        $serviceType->kategori_pendapatans_id = $request->kategori_pendapatan_id;
         $serviceType->user_id = Auth::id();
         $serviceType->save();
 
-        // Mengembalikan respons dengan data yang baru ditambahkan
-        return response()->json(['data' => $serviceType], 201);
+        $userId = Auth::id();
+        $data = JenisJasaAkun::with('kategoriPendapatan')->where('user_id', $userId)->get();
+
+        return response()->json(['data' => $data], 201);
     }
 
 
@@ -113,7 +117,7 @@ class JenisJasaAkunController extends Controller
         $serviceType->delete();
 
         $userId = Auth::id();
-        $data = JenisJasaAkun::where('user_id', $userId)->get();
+        $data = JenisJasaAkun::with('kategoriPendapatan')->where('user_id', $userId)->get();
 
         $response = [
             'data' => $data

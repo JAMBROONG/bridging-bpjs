@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('kelas_tarif', 512);
             $table->string('template', 512);
+            $table->unsignedBigInteger('kategori_pendapatans_id');
             $table->enum('jenis_jasa', ['JS', 'JP'])->nullable();
             $table->timestamps();
+            $table->foreign('kategori_pendapatans_id')->references('id')->on('kategori_pendapatans');
         });
     }
 

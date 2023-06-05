@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 
 export default function CardServiceType({ data, data_template }) {
+    console.log(data);
     const [deleteConfirmation, setDeleteConfirmation] = useState('');
     const [serviceTypes, setServiceTypes] = useState(data);
 
@@ -40,31 +41,33 @@ export default function CardServiceType({ data, data_template }) {
     };
 
     return (
-        <div className="">
+        <div className=" flex-1">
             <CardServiceTypeBtnAdd data={data}  data_template={data_template} setServiceTypes={setServiceTypes} />
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
             <div className="mb-3 overflow-x-auto shadow-md rounded p-3">
                 <div className="rounded p-2 bg-base-300 mb-2 text-center">
                     <span>Jenis Jasa Anda</span>
                 </div>
-                <table className="table table-compact w-full">
+                <table className="table table-compact  table-zebra table-auto w-full">
                     <thead>
                         <tr>
                             <th>No</th>
                             <th>Kelas Tarif</th>
                             <th>Jenis Jasa</th>
+                            <th>Kategori Pendapatan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {serviceTypes.map((item, index) => (
                             <tr key={index}>
-                                <td>{index + 1}</td>
+                                <th>{index + 1}</th>
                                 <td>{item.kelas_tarif}</td>
                                 <td>{item.jenis_jasa}</td>
+                                <td className='break-words break'>{item.kategori_pendapatan && item.kategori_pendapatan.kategori}</td>
                                 <td className='flex'>
                                     <button
-                                        className='btn btn-sm btn-error mr-2'
+                                        className='btn btn-sm btn-primary mr-2'
                                         onClick={() => handleDeleteConfirmation(index)}
                                     >
                                         <i className='fa fa-trash'></i>

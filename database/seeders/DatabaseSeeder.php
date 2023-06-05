@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\DataPendapatanRsRi;
 use App\Models\Invoices;
+use App\Models\JenisJasaAkun;
+use App\Models\KategoriPendapatan;
 use App\Models\KpiKategori;
 use App\Models\Subscribe;
 use App\Models\TemplateKelasTarif;
@@ -119,18 +121,60 @@ class DatabaseSeeder extends Seeder
         foreach ($invoices as $invoice) {
             Invoices::create($invoice);
         }
+
+        $data = [
+            [
+                'id' => 1,
+                'kategori' => 'Jasa Penunjang medis dan Jasa Tenaga Ahli',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'kategori' => 'Obat dan Perlengkapan Medis',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 3,
+                'kategori' => 'Kamar Rawat Inap',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 4,
+                'kategori' => 'Fasilitas Rumah Sakit',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 5,
+                'kategori' => 'Kamar Operasi',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 6,
+                'kategori' => 'Pendapatan Administrasi dan Lainnya',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        KategoriPendapatan::insert($data);
+
         $kelas_tarif_khanza = [
-            ['akun' => 'Administrasi', 'jenis_jasa' => 'JS'],
-            ['akun' => 'Administrasi Rawat Inap', 'jenis_jasa' => 'JS'],
-            ['akun' => 'Akomodasi', 'jenis_jasa' => 'JS'],
-            ['akun' => 'Pemeriksaan/Konsultasi Dokter', 'jenis_jasa' => 'JP'],
-            ['akun' => 'Pengambilan Sampel Darah', 'jenis_jasa' => 'JS'],
-            ['akun' => 'Tindakan Dokter', 'jenis_jasa' => 'JP'],
-            ['akun' => 'Tindakan Keperawatan', 'jenis_jasa' => 'JP'],
-            ['akun' => 'Pemeriksaan Lab', 'jenis_jasa' => 'JS'],
-            ['akun' => 'Pemeriksaan Radiologi', 'jenis_jasa' => 'JS'],
-            ['akun' => 'Operasi', 'jenis_jasa' => 'JP'],
-            ['akun' => 'Obat & BHP', 'jenis_jasa' => 'JS'],
+            ['akun' => 'Administrasi', 'jenis_jasa' => 'JS', 'kategori_pendapatans_id' => 6],
+            ['akun' => 'Administrasi Rawat Inap', 'jenis_jasa' => 'JS', 'kategori_pendapatans_id' => 3],
+            ['akun' => 'Akomodasi', 'jenis_jasa' => 'JS', 'kategori_pendapatans_id' => 4],
+            ['akun' => 'Pemeriksaan/Konsultasi Dokter', 'jenis_jasa' => 'JP', 'kategori_pendapatans_id' => 1],
+            ['akun' => 'Pengambilan Sampel Darah', 'jenis_jasa' => 'JS', 'kategori_pendapatans_id' => 6],
+            ['akun' => 'Tindakan Dokter', 'jenis_jasa' => 'JP', 'kategori_pendapatans_id' => 1],
+            ['akun' => 'Tindakan Keperawatan', 'jenis_jasa' => 'JP', 'kategori_pendapatans_id' => 3],
+            ['akun' => 'Pemeriksaan Lab', 'jenis_jasa' => 'JS', 'kategori_pendapatans_id' => 4],
+            ['akun' => 'Pemeriksaan Radiologi', 'jenis_jasa' => 'JS', 'kategori_pendapatans_id' => 4],
+            ['akun' => 'Operasi', 'jenis_jasa' => 'JP', 'kategori_pendapatans_id' => 5],
+            ['akun' => 'Obat & BHP', 'jenis_jasa' => 'JS', 'kategori_pendapatans_id' => 2],
         ];
 
         $data = [];
@@ -140,11 +184,14 @@ class DatabaseSeeder extends Seeder
                 'kelas_tarif' => $kelas_tarif['akun'],
                 'template' => 'Khanza',
                 'jenis_jasa' => $kelas_tarif['jenis_jasa'],
+                'kategori_pendapatans_id' => $kelas_tarif['kategori_pendapatans_id'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
         }
+
         TemplateKelasTarif::insert($data);
+
 
         $kategori = [
             'Indeks Dasar (Basic Index)',
@@ -153,7 +200,7 @@ class DatabaseSeeder extends Seeder
             'Indeks Emergensi',
             'Indeks Posisi',
             'Indeks Kinerja dan Disiplin',
-         ];
+        ];
 
         $data = [];
 
@@ -162,6 +209,156 @@ class DatabaseSeeder extends Seeder
                 'kategori' => $item,
             ];
         }
+
         KpiKategori::insert($data);
+
+        $data = [
+            [
+                'id' => 12,
+                'user_id' => 1,
+                'kelas_tarif' => 'Ambulance',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 4,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 13,
+                'user_id' => 1,
+                'kelas_tarif' => 'BMHP',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 14,
+                'user_id' => 1,
+                'kelas_tarif' => 'Fisioterapi',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 4,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 15,
+                'user_id' => 1,
+                'kelas_tarif' => 'Instalasi Bedah Sentral',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 5,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 16,
+                'user_id' => 1,
+                'kelas_tarif' => 'Instalasi Gawat Darurat',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 4,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 17,
+                'user_id' => 1,
+                'kelas_tarif' => 'Jasa Pelayanan',
+                'jenis_jasa' => 'JP',
+                'kategori_pendapatans_id' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 18,
+                'user_id' => 1,
+                'kelas_tarif' => 'Laboratorium',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 4,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 19,
+                'user_id' => 1,
+                'kelas_tarif' => 'Pemakaian Obat dan Alkes',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 20,
+                'user_id' => 1,
+                'kelas_tarif' => 'Prosedur Non Bedah',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 5,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 21,
+                'user_id' => 1,
+                'kelas_tarif' => 'Radiologi',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 4,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 22,
+                'user_id' => 1,
+                'kelas_tarif' => 'Ruang Perawatan',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 3,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 23,
+                'user_id' => 1,
+                'kelas_tarif' => 'Sewa Alat',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 24,
+                'user_id' => 1,
+                'kelas_tarif' => 'Tindakan Dokter',
+                'jenis_jasa' => 'JP',
+                'kategori_pendapatans_id' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 25,
+                'user_id' => 1,
+                'kelas_tarif' => 'Tindakan Medis Perawatan',
+                'jenis_jasa' => 'JP',
+                'kategori_pendapatans_id' => 6,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 26,
+                'user_id' => 1,
+                'kelas_tarif' => 'Tunai',
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 6,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 27,
+                'user_id' => 1,
+                'kelas_tarif' => 'Visite/Konsul Dokter',
+                'jenis_jasa' => 'JP',
+                'kategori_pendapatans_id' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        JenisJasaAkun::insert($data);
     }
-    }
+}

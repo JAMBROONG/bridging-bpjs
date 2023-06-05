@@ -5,6 +5,7 @@ use App\Http\Controllers\DataDokterController;
 use App\Http\Controllers\JasaPelayananController;
 use App\Http\Controllers\JasaSaranaController;
 use App\Http\Controllers\JenisJasaAkunController;
+use App\Http\Controllers\KategoriPendapatanController;
 use App\Http\Controllers\KpiDokterController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -23,7 +24,7 @@ use Inertia\Inertia;
 */
 
 Route::get('/', function () {
-    return Inertia::render('Auth/Login', [
+    return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
@@ -43,15 +44,27 @@ Route::get('/shifting', function () {
 })->middleware(['auth', 'verified'])->name('shifting');
 
 
-Route::get('/distribution', function () {
-    return Inertia::render('Distribution');
-})->middleware(['auth', 'verified'])->name('distribution');
+Route::get('/allocation-distribution', function () {
+    return Inertia::render('Distribution',[
+        'file' => [
+            'pathPendapatanRI' => Session::get('pathPendapatanRI'),
+            'pathPendapatanRJ' => Session::get('pathPendapatanRJ'),
+            'pathBPJSRI' => Session::get('pathBPJSRI'),
+            'pathBPJSRJ' => Session::get('pathBPJSRJ')
+        ]
+    ]);
+})->middleware(['auth', 'verified'])->name('allocation.distribution');
+
 
 Route::get('/application', function () {
     return Inertia::render('Application');
 })->middleware(['auth', 'verified'])->name('application');
 
 Route::middleware('auth')->group(function () {
+    //file
+    Route::get('/file-clear', [App::class, 'clear'])->name('file.clear');
+
+    // service
     Route::delete('/service-types/{id}', [JenisJasaAkunController::class, 'destroy'])->name('service-types.destroy');
     Route::get('/service-types/{id}/edit', [JenisJasaAkunController::class, 'edit'])->name('service-types.edit');
     Route::post('/service-types', [JenisJasaAkunController::class, 'store'])->name('service-types.store');
@@ -67,6 +80,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/dokter', [DataDokterController::class, 'index'])->name('dokter.index');
     Route::post('/add-dokter', [DataDokterController::class, 'store'])->name('dokter.store');
     Route::delete('/delete-dokter/{id}', [DataDokterController::class, 'destroy'])->name('dokter.delete');
+
+    //kategori pendapatan
+    Route::get('/getData', [KategoriPendapatanController::class, 'show'])->name('kategoriPendapatan.get');
     
     // KPI
     Route::get('/kpi', [KpiDokterController::class, 'index'])->name('kpi');
@@ -75,8 +91,19 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/submit-percentage-jl', [JasaPelayananController::class, 'submitPercentageJlJtl'])->name('submit-percentage-jl');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+
+    // shifting
     Route::post('/upload-shifting', [App::class, 'uploadShifting'])->name('uploadShifting');
     Route::get('/data-shifting', [App::class, 'dataShifting'])->name('data-shifting');
+    Route::get('/shifting-js', [App::class, 'shiftingJS'])->name('shifting.js');
+    Route::get('/shifting-all', [App::class, 'shiftingAll'])->name('shifting.all');
+    Route::get('/distribution-all', [App::class, 'distributionAll'])->name('distribution.all');
+    Route::get('/shifting-jp', [App::class, 'shiftingJP'])->name('shifting.jp');
+
+    // allocation and distribution
+    Route::post('/upload-distribution', [App::class, 'uploadDistribution'])->name('uploadDistribution');
+    Route::get('/data-distribution', [App::class, 'dataDistribution'])->name('data-distribution');
+
     Route::get('/piutang-bpjs-tak-tertagih', [App::class, 'piutangTakTertagih'])->name('piutang-bpjs-tak-tertagih');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/set-service-type', [JenisJasaAkunController::class, 'index'])->name('set-service-type');
