@@ -5,7 +5,7 @@ import { Head } from '@inertiajs/react';
 export default function SetServiceType({ auth, data, data_template }) {
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Dashboard" />
+            <Head title="Set Service Type" />
             <div className="bg-base-200">
                 <div className="hero py-12 bg-base-200">
                     <div className="hero-content w-full text-left">

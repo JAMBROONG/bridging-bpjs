@@ -7,7 +7,6 @@ import {ToastContainer, toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function Shifting({auth, file}) {
-    console.log(file);
     const [count,
         setCount] = useState(Object.values(file).filter(value => value !== null).length);
     const [currentStep,

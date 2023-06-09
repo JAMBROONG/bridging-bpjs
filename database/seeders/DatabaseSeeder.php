@@ -12,6 +12,7 @@ use App\Models\TemplateKelasTarif;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\VendorObat;
 use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
@@ -308,7 +309,7 @@ class DatabaseSeeder extends Seeder
                 'user_id' => 1,
                 'kelas_tarif' => 'Ruang Perawatan',
                 'jenis_jasa' => 'JS',
-                'kategori_pendapatans_id' => 3,
+                'kategori_pendapatans_id' => 4,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -334,8 +335,8 @@ class DatabaseSeeder extends Seeder
                 'id' => 25,
                 'user_id' => 1,
                 'kelas_tarif' => 'Tindakan Medis Perawatan',
-                'jenis_jasa' => 'JP',
-                'kategori_pendapatans_id' => 6,
+                'jenis_jasa' => 'JS',
+                'kategori_pendapatans_id' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -360,5 +361,94 @@ class DatabaseSeeder extends Seeder
         ];
 
         JenisJasaAkun::insert($data);
+
+        $data = [
+            [
+                'id' => 1,
+                'user_id' => 1,
+                'vendor' => 'PT PEMUKA JAYA SAKTI',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'user_id' => 1,
+                'vendor' => 'PT FOCUS BINA ARTHA',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 3,
+                'user_id' => 1,
+                'vendor' => 'PT SABA INDOMEDIKA JAYA',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 4,
+                'user_id' => 1,
+                'vendor' => 'PT SAPTA SARITAMA',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 5,
+                'user_id' => 1,
+                'vendor' => 'PT INDOFARMA GLOBAL MEDIKA',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 6,
+                'user_id' => 1,
+                'vendor' => 'PT PERDANA MITRA LESTARI',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 7,
+                'user_id' => 1,
+                'vendor' => 'PT KIMIA FARMA TRADING & DISTRIBUTION',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 8,
+                'user_id' => 1,
+                'vendor' => 'PT SARANA MAJU SENTOSA',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 9,
+                'user_id' => 1,
+                'vendor' => 'PT RAJAWALI NUSINDO',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 10,
+                'user_id' => 1,
+                'vendor' => 'PT PHARMACON AGENG ABADI',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 11,
+                'user_id' => 1,
+                'vendor' => 'PT KEBAYORAN PHARMA',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 12,
+                'user_id' => 1,
+                'vendor' => 'PT PENTA VALENT',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+        
+        VendorObat::insert($data);
     }
 }

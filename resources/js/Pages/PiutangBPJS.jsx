@@ -33,7 +33,7 @@ export default function PiutangBPJS({ auth, dataPiutang }) {
     };
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Jasa Pelayanan" />
+            <Head title="BPJS Belum Terklaim" />
             <div className="bg-base-200">
                 <div className="py-20 grid grid-cols-1 items-center gap-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="w-full">
@@ -116,7 +116,9 @@ export default function PiutangBPJS({ auth, dataPiutang }) {
                                                             <td>{dataItem.PRODUK}</td>
                                                             <td>{dataItem['KLS TARIF']}</td>
                                                             <td>{dataItem.DOKTER}</td>
-                                                            <td className='text-end'>{dataItem.JUMLAH}</td>
+                                                            <td className='text-end'>{dataItem.JUMLAH.toLocaleString('id-ID', {
+                                                                maximumFractionDigits: 0,
+                                                            })}</td>
                                                         </tr>
                                                     ))}
                                                     <tr>

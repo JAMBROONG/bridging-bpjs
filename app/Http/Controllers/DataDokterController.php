@@ -44,12 +44,14 @@ class DataDokterController extends Controller
         // Validasi request
         $validatedData = $request->validate([
             'nama_dokter' => 'required|string|max:255',
+            'nomor_pegawai' => 'required|string|max:255',
         ]);
 
         // Buat instance DataDokter baru
         $dataDokter = new DataDokter();
         $dataDokter->user_id = $userId;
         $dataDokter->nama_dokter = $validatedData['nama_dokter'];
+        $dataDokter->nomor_pegawai = $validatedData['nomor_pegawai'];
 
         // Simpan data dokter ke database
         $dataDokter->save();

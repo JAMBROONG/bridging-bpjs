@@ -91,13 +91,7 @@ Route::middleware('auth')->group(function () {
     
     // KPI
     Route::get('/kpi', [KpiDokterController::class, 'index'])->name('kpi');
-    Route::get('/kpi-dokters', [KpiDokterController::class, 'kpiDokters'])->name('kpi-dokters');
-    Route::post('/kpi-add', [KpiDokterController::class, 'create'])->name('kpi.add');
-    Route::post('/kpi-kategori-update', [KpiDokterController::class, 'kpiKategoriUpdate'])->name('kpi-kategori-update');
-    Route::post('/kpi-delete', [KpiDokterController::class, 'destroy'])->name('kpi-delete');
-    Route::post('/kpi-update', [KpiDokterController::class, 'update'])->name('kpi-update');
-    Route::get('/getTemplateKPI', [KpiDokterController::class, 'getTemplateKPI'])->name('getTemplateKPI');
-    Route::get('/kpi-by-dokter', [KpiDokterController::class, 'kpiByDokter'])->name('kpi-by-dokter');
+    
 
 
     Route::post('/submit-percentage-jl', [JasaPelayananController::class, 'submitPercentageJlJtl'])->name('submit-percentage-jl');
@@ -112,6 +106,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/shifting-jp', [App::class, 'shiftingJP'])->name('shifting.jp');
 
     //PPN
+    
     Route::get('/ppn', [PpnController::class, 'index'])->name('ppn');
     Route::post('/upload-ppn', [PpnController::class, 'uploadPpn'])->name('upload-ppn');
     Route::get('/delPathFilePpn', [PpnController::class, 'delPathFilePpn'])->name('delete-ppn');

@@ -3,7 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {Head, Link} from "@inertiajs/react";
 import InfiniteScroll from "react-infinite-scroll-component";
 export default function DataDistribution({auth, data}) {
-    console.log(data);
+    // console.log(data);
     const [hasMore,
         setHasMore] = useState(true);
     const [dataToShow,
@@ -52,7 +52,7 @@ export default function DataDistribution({auth, data}) {
 
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Jasa Pelayanan"/>
+            <Head title="Allocation & Distribution"/>
             <div className="bg-base-200">
                 <div
                     className="py-20 pt-3 grid grid-cols-1 items-center gap-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -144,7 +144,7 @@ export default function DataDistribution({auth, data}) {
                         <div className="flex mt-10">
                             {data["pasienBPJS_RJ"] || data["pasienBPJS_RI"]
                                 ? (
-                                    <div className="flex-1">
+                                    <div className="flex-1 justify-between">
                                         <select
                                             className="select w-full max-w-xs rounded"
                                             onChange={handleFilterChange}
@@ -167,7 +167,7 @@ export default function DataDistribution({auth, data}) {
 
                                 )
                                 : ("")}
-                            <div className="flex-1 text-right">
+                            <div className="flex-1 text-right hidden">
                                 <Link href={route("shifting.js")} className="indicator ml-8">
                                     <span className="indicator-item badge badge-secondary">
                                         {totalJS
@@ -201,31 +201,27 @@ export default function DataDistribution({auth, data}) {
                                         .slice(0, dataToShow)
                                         .map((item, index) => (
                                             <div className="overflow-x-auto mt-5 shadow" key={index}>
-                                                <div>
-                                                    <div className=" flex justify-between bg-base00 p-2">
+                                                <div className=" bg-current p-5">
+                                                    <div className=" flex justify-between text-base-300">
                                                         <div className="text-sm flex-1">
-                                                            {index + 1}. {item.PASIEN}
-                                                            -
-                                                            <b>{item.RM}</b>{" "}
-                                                        </div>
-                                                        <div className="text-sm flex-1 text-right">
-                                                            INACBG:
-                                                            <b>{item.INACBG}</b>
+                                                            {index + 1}. {item.PASIEN} - <b>{item.RM}</b>
+                                                            <div className=""> INACBG: {item.INACBG} </div>
+                                                            <div className="">Pendapatan BPJS: {item['Pendapatan BPJS'].toLocaleString("id-ID", {maximumFractionDigits: 0})}</div>
+                                                            <div className="">Beban Gaji: {item['Beban Gaji'].toLocaleString("id-ID", {maximumFractionDigits: 0})}</div>
+                                                           
                                                         </div>
                                                     </div>
 
                                                     <table className="table table-compact w-full">
                                                         <thead>
                                                             <tr>
-                                                                <th className="bg-base-300">NOTRANS</th>
                                                                 <th className="bg-base-300">KLS TARIF</th>
                                                                 <th className="bg-base-300">DOKTER</th>
                                                                 <th className="bg-base-300">Tarif RS</th>
-                                                                <th className="bg-base-300">Tarif Setelah di Allocation</th>
+                                                                <th className="bg-base-300">Tarif Allocation</th>
+                                                                <th className="bg-base-300">Sisa Tarif</th>
                                                                 <th className="bg-base-300">Persentase</th>
-                                                                <th className="bg-base-300">
-                                                                    Setelah di Konversi{" "}
-                                                                </th>
+                                                                <th className="bg-base-300">Setelah di Konversi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -233,7 +229,6 @@ export default function DataDistribution({auth, data}) {
                                                                 .data
                                                                 .map((dataItem, dataIndex) => (
                                                                     <tr key={dataIndex}>
-                                                                        <td>{dataItem.NOTRANS}</td>
                                                                         <td>{dataItem["KLS TARIF"]}</td>
                                                                         <td>{dataItem.DOKTER}</td>
                                                                         <td className="text-end">
@@ -246,36 +241,44 @@ export default function DataDistribution({auth, data}) {
                                                                                 ['jumlahSetelahDiKonversi']
                                                                                 .toLocaleString("id-ID", {maximumFractionDigits: 0})}
                                                                         </td>
+                                                                        <td  className="text-end">{dataItem["sisa_nominal"]}</td>
                                                                         <td className="text-end">
-                                                                            {item.data_konversi[dataIndex].Persentase}
+                                                                        {item['Data Konversi'][dataIndex]['Persentase'].toFixed(2)}%
                                                                         </td>
                                                                         <td className="text-end">
-                                                                            {item
-                                                                                .data_konversi[dataIndex]
-                                                                                .Jumlah_Konversi
-                                                                                .toLocaleString("id-ID", {maximumFractionDigits: 0})}
+                                                                            {item['Data Konversi'][dataIndex]['Jumlah_Konversi'].toLocaleString("id-ID", {maximumFractionDigits: 0})}
                                                                         </td>
                                                                     </tr>
                                                                 ))}
                                                             <tr>
-                                                                <td colSpan="3" className="text-end">
+                                                                <td colSpan="2" className="text-end">
                                                                     Jumlah:
                                                                 </td>
                                                                 <td className="text-end bg-base-300">
-                                                                    {item["Tarif RS"].toLocaleString("id-ID", {maximumFractionDigits: 0})}
-                                                                </td>
-                                                                <td className="text-end bg-base-300">
-                                                                    
                                                                 {item
                                                                         .data
-                                                                        .reduce((total, konversiItem) => total + parseFloat(konversiItem.jumlahSetelahDiKonversi), 2)
+                                                                        .reduce((total, konversiItem) => total + parseFloat(konversiItem.JUMLAH), 0)
                                                                         .toLocaleString("id-ID", {maximumFractionDigits: 0})}
                                                                 </td>
-                                                                <td className="text-end">100%</td>
                                                                 <td className="text-end bg-base-300">
-                                                                    {item
-                                                                        .data_konversi
-                                                                        .reduce((total, konversiItem) => total + parseFloat(konversiItem.Jumlah_Konversi), 2)
+                                                                {item
+                                                                        .data
+                                                                        .reduce((total, konversiItem) => total + parseFloat(konversiItem.jumlahSetelahDiKonversi), 0)
+                                                                        .toLocaleString("id-ID", {maximumFractionDigits: 0})}
+                                                                </td>
+                                                                <td className="text-end bg-base-300"></td>
+                                                                <td className="text-end text-end bg-base-300">
+                                                                    
+                                                                {item
+                                                                        ['Data Konversi']
+                                                                        .reduce((total, konversiItem) => total + parseFloat(konversiItem.Persentase), 0)
+                                                                        .toLocaleString("id-ID", {maximumFractionDigits: 0})}
+
+                                                                </td>
+                                                                <td className="text-end bg-base-300">
+                                                                {item
+                                                                        ['Data Konversi']
+                                                                        .reduce((total, konversiItem) => total + parseFloat(konversiItem.Jumlah_Konversi), 0)
                                                                         .toLocaleString("id-ID", {maximumFractionDigits: 0})}
                                                                 </td>
                                                             </tr>

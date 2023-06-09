@@ -25,6 +25,7 @@ class KpiDokter extends Model
         'nilai',
         'bobot',
         'user_id',
+        'kategori_id'
     ];
 
     /**
@@ -33,5 +34,10 @@ class KpiDokter extends Model
     public function kpiDokter()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+    
+    public function kpiKategori()
+    {
+        return $this->belongsTo(KpiKategori::class, 'kategori_id');
     }
 }

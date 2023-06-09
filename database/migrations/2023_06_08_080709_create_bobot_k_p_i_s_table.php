@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('data_dokters', function (Blueprint $table) {
+        Schema::create('bobot_k_p_i_s', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('nama_dokter', 512);
-            $table->string('nomor_pegawai', 512);
-            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
+            $table->string('bobot');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->unsignedBigInteger('kategori_id');
+            $table->foreign('kategori_id')->references('id')->on('kpi_kategoris');
         });
     }
 
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('data_dokters');
+        Schema::dropIfExists('bobot_k_p_i_s');
     }
 };

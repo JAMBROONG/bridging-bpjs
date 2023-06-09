@@ -5,32 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DataDokter extends Model
+class BobotKPI extends Model
 {
     use HasFactory;
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'data_dokters';
+    
+    protected $table = 'bobot_k_p_i_s';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+    
     protected $fillable = [
         'user_id',
-        'nama_dokter',
-        'nomor_pegawai'
+        'kategori_id',
+        'bobot'
     ];
 
     /**
      * Get the user that owns the data pendapatan rs ris.
      */
-    public function dataDokter()
+    public function dataKPI()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+    public function dataKategori()
+    {
+        return $this->belongsTo(KpiKategori::class, 'kategori_id');
+    }
+
 }

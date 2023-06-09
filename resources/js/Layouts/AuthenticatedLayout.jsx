@@ -70,6 +70,16 @@ export default function Authenticated({ user, header, children, navActive }) {
                                     Allocation & Distribution
                                 </ResponsiveNavLink>
                             </li>
+                            <li>
+                                <ResponsiveNavLink href={route('ppn')} as="button">
+                                    PPN
+                                </ResponsiveNavLink>
+                            </li>
+                            <li>
+                                <ResponsiveNavLink href={route('kpi-dokters')} as="button">
+                                    KPI
+                                </ResponsiveNavLink>
+                            </li>
                             <li tabIndex={0}>
                                 <a>
                                     Master Data
@@ -99,6 +109,16 @@ export default function Authenticated({ user, header, children, navActive }) {
                                     <li>
                                         <ResponsiveNavLink href={route('kpi')} as="button">
                                             Data KPI
+                                        </ResponsiveNavLink>
+                                    </li>
+                                    <li>
+                                        <ResponsiveNavLink href={route('kpi-by-dokter')} as="button">
+                                            Data KPI Dokter
+                                        </ResponsiveNavLink>
+                                    </li>
+                                    <li>
+                                        <ResponsiveNavLink href={route('vendorObat')} as="button">
+                                            Data Vendor Obat
                                         </ResponsiveNavLink>
                                     </li>
                                 </ul>

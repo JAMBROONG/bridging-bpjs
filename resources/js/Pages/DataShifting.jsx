@@ -52,7 +52,7 @@ export default function DataShifting({auth, data}) {
 
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Jasa Pelayanan"/>
+            <Head title="Shifting"/>
             <div className="bg-base-200">
                 <div
                     className="py-20 pt-3 grid grid-cols-1 items-center gap-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

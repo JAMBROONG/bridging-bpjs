@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
+        <?php
+        ini_set('max_execution_time', 300); // 5 minutes
+        ?>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}" />
-        <title inertia>{{ config('app.name', 'Lardfefavel') }}</title>
+        <title inertia>{{ config('app.name', 'Lardfefavel') }}</title>  
         <link rel="icon" href="img/icon-page.jpg" type="image/x-icon" />
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

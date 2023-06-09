@@ -541,11 +541,6 @@ class App extends Controller
             // perhitungan pasien non bpjs
             $pasienNonBPJS = $this->getPasienNonBPJS($pathPendapatanRI, $pathBPJSRI);
 
-            $totalPendapatanNonBPJS = $pasienNonBPJS->reduce(function ($carry, $item) {
-                return $carry + intval($item['JUMLAH']);
-            }, 0);
-            $dataBPJS = collect($this->getDataBpjs($pathBPJSRI));
-
             $breakdownRINonBPJS = $pasienNonBPJS->groupBy('KLS TARIF')->map(function ($items, $kelasTarif) use ($pasienNonBPJS) {
                 $dataPasien = collect($pasienNonBPJS->where('KLS TARIF', trim($kelasTarif))->values()->all());
                 $jumlah = $dataPasien->reduce(function ($carry, $item) {
@@ -656,14 +651,14 @@ class App extends Controller
                 $jumlah = intval($items->sum('jumlah'));
                 return [
                     'kategori' => $items[0]['kategori'],
-                    'jumlah' => $jumlah
+                    'jumlah' => intval($jumlah)
                 ];
             })->values()->all();
 
 
             $response = $response + [
-                'pendapatanRINonBPJS' => $totalJumlahKonversiNonBPJS,
-                'pendapatanRIBPJS' => $totalJumlahKonversiBPJS,
+                'pendapatanRINonBPJS' => intval($totalJumlahKonversiNonBPJS),
+                'pendapatanRIBPJS' => intval($totalJumlahKonversiBPJS),
                 'laporanRI' => $laporanRI
             ];
         }
@@ -779,13 +774,13 @@ class App extends Controller
                 $jumlah = $items->sum('jumlah');
                 return [
                     'kategori' => $items[0]['kategori'],
-                    'jumlah' => $jumlah
+                    'jumlah' => intval($jumlah)
                 ];
             })->values()->all();
 
             $response = $response + [
-                'pendapatanRJNonBPJS' => $totalJumlahKonversiNonBPJS,
-                'pendapatanRJBPJS' => $totalJumlahKonversiBPJS,
+                'pendapatanRJNonBPJS' => intval($totalJumlahKonversiNonBPJS),
+                'pendapatanRJBPJS' => intval($totalJumlahKonversiBPJS),
                 'laporanRJ' => $laporanRJ
             ];
         }
@@ -920,6 +915,9 @@ class App extends Controller
         $pathBPJSRI = Session::get('pathBPJSRI');
         $pathBPJSRJ = Session::get('pathBPJSRJ');
         $response = [];
+        if (empty(PercentageJsJp::where('user_id', Auth::id())->first()['jp'])) {
+            return redirect()->back();
+        }
         if ($pathPendapatanRI && $pathBPJSRI) {
             $dataBPJSRI = collect($this->getDataBpjs($pathBPJSRI, 'RI'));
 
@@ -959,6 +957,7 @@ class App extends Controller
                             $jumlahKonversi = $persentase * $nominalJP;
                             $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
                             $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
                             $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
                         }
                         return $items;
@@ -971,6 +970,7 @@ class App extends Controller
                             $jumlahKonversi = $persentase * $nominalJS;
                             $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
                             $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
                             $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
                         }
                         return $items;
@@ -982,46 +982,48 @@ class App extends Controller
                             $jumlahKonversi = $persentase * $nominalJS;
                             $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
                             $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
                             $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
                         } else if ($items['JENIS JASA'] == "JP") {
                             $jumlahKonversi = $persentase * $nominalJP;
                             $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
                             $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
                             $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
                         }
                         return $items;
                     });
                 }
-                $bebanGaji = collect($item)->where('JENIS JASA','JS')->all();
-                $pendapatanBPJS = collect($item)->where('JENIS JASA','JP')->all();
-                if (count($bebanGaji) <=0 ) {
-                    $pendapatanBPJS = $jumlahNominal;
-                    $bebanGaji = 0;
-                } else
-                if (count($pendapatanBPJS) <=0 ) {
+                $bebanGaji = collect($item)->where('JENIS JASA', 'JS')->all();
+                $pendapatanBPJS = collect($item)->where('JENIS JASA', 'JP')->all();
+                if (count($bebanGaji) <= 0) {
                     $bebanGaji = $jumlahNominal;
                     $pendapatanBPJS = 0;
-                } else{
+                } else
+                if (count($pendapatanBPJS) <= 0) {
+                    $bebanGaji = 0;
+                    $pendapatanBPJS = $jumlahNominal;
+                } else {
                     $bebanGaji = collect($bebanGaji)->sum(function ($item) {
                         return intval($item['JUMLAH']);
-                    });                    
+                    });
                     $pendapatanBPJS = collect($pendapatanBPJS)->sum(function ($item) {
                         return intval($item['JUMLAH']);
-                    });                    
+                    });
                 }
 
                 $rm = $item[0]['RM'];
                 $pasien = $item[0]['PASIEN'];
-                
+
                 $tarifBPJS = $dataBPJSRI->where('No_RM', $rm)->pluck('Total Tarif')->first();
                 $inacbg = $dataBPJSRI->where('No_RM', $rm)->pluck('INACBG')->first();
 
-                $dataKonversi = $item->map(function ($items) use ($tarifBPJS,$jumlahNominal) {
+                $dataKonversi = $item->map(function ($items) use ($tarifBPJS, $jumlahNominal) {
                     $persentase = (intval($items['jumlahSetelahDiKonversi']) / $jumlahNominal) * 100;
                     $jumlahKonversi = ($persentase / 100) * $tarifBPJS;
                     return [
                         'JUMLAH' => intval($items['jumlahSetelahDiKonversi']),
-                        'Persentase' => number_format($persentase, 2) . '%',
+                        'Persentase' => $persentase,
                         'Jumlah_Konversi' => $jumlahKonversi
                     ];
                 })->values()->all();
@@ -1038,9 +1040,9 @@ class App extends Controller
                 return  $array;
             });
             $updatedArray = $array_BPJS_RIWithJenisJasa->values()->all();
-            
+
             Session::put('dataPasienDistributionBPJSRI', $updatedArray);
-            
+
 
             $array_PiutangBPJS_RI = $this->getPiutangBPJS($pathPendapatanRI, $pathBPJSRI);
             $totalJumlahData_JP = 0;
@@ -1053,14 +1055,14 @@ class App extends Controller
             ];
         }
         if ($pathPendapatanRJ && $pathBPJSRJ) {
-
             $dataBPJSRJ = collect($this->getDataBpjs($pathBPJSRJ, 'RJ'));
 
+            $persentaseJP = PercentageJsJp::where('user_id', Auth::id())->first()['jp'];
+            $persentaseJS = PercentageJsJp::where('user_id', Auth::id())->first()['js'];
             // PASIEN BPJS
-
             $array_BPJS_RJ = $this->getPasienBPJS($pathPendapatanRJ, $pathBPJSRJ);
             $kelasTarifMapping = collect(JenisJasaAkun::where('user_id', Auth::id())->get());
-            $array_BPJS_RJWithJenisJasa = $array_BPJS_RJ->map(function ($item) use ($kelasTarifMapping, $array_BPJS_RJ, $persentaseJP, $persentaseJS) {
+            $array_BPJS_RJWithJenisJasa = $array_BPJS_RJ->map(function ($item) use ($kelasTarifMapping, $array_BPJS_RJ) {
                 $kelasTarif = trim($item['KLS TARIF']);
                 $jenisJasa = $kelasTarifMapping->where('kelas_tarif', $kelasTarif)->first()['jenis_jasa'];
                 $jumlahNominalPerPasien = collect($array_BPJS_RJ)->where('RM', $item['RM'])->all();
@@ -1075,144 +1077,113 @@ class App extends Controller
                 return $item;
             });
 
-            $array_BPJS_RJWithJenisJasa = $array_BPJS_RJWithJenisJasa->groupBy('PASIEN')->map(function ($item) use ($array_BPJS_RI, $persentaseJP, $persentaseJS, $array_BPJS_RJWithJenisJasa) {
+            $array_BPJS_RJWithJenisJasa = $array_BPJS_RJWithJenisJasa->groupBy('PASIEN')->map(function ($item) use ($dataBPJSRJ, $persentaseJP, $persentaseJS, $array_BPJS_RJWithJenisJasa) {
                 $array_BPJS_RJWithJenisJasaJS = collect($array_BPJS_RJWithJenisJasa->where('RM', $item[0]['RM'])->where('JENIS JASA', 'JS')->all());
                 $array_BPJS_RJWithJenisJasaJP = collect($array_BPJS_RJWithJenisJasa->where('RM', $item[0]['RM'])->where('JENIS JASA', 'JP')->all());
                 $jumlahNominal = $item->sum(function ($items) {
                     return intval($items['JUMLAH']);
                 });
                 $array = [];
+                $nominalJP = (($jumlahNominal * $persentaseJP) / 100);
+                $nominalJS = (($jumlahNominal * $persentaseJS) / 100);
                 if (count($array_BPJS_RJWithJenisJasaJS) == 0) {
-                    // $array = $array + ['BEBAN GAJI' => $jumlahNominal];
-                    // $array = $array + ['Pendapatan BPJS' => 0];
-                    $item = $item->map(function ($items) use ($jumlahNominal) {
-                        $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahNominal]);
-                        $items = array_merge($items, ['jumlahHasilPersentase' => $jumlahNominal]);
-                        $items = array_merge($items, ['persentase' => 100 . '%']);
+                    $item = $item->map(function ($items) use ($jumlahNominal, $nominalJP, $persentaseJP, $persentaseJS) {
+                        $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                        if ($items['JENIS JASA'] == "JP") {
+                            $jumlahKonversi = $persentase * $nominalJP;
+                            $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
+                            $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
+                            $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
+                        }
                         return $items;
                     });
                 }
                 if (count($array_BPJS_RJWithJenisJasaJP) == 0) {
-                    // $array = $array + ['BEBAN GAJI' => 0];
-                    // $array = $array + ['Pendapatan BPJS' => $jumlahNominal];
-                    $item = $item->map(function ($items) use ($jumlahNominal) {
-                        $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahNominal]);
-                        $items = array_merge($items, ['jumlahHasilPersentase' => $jumlahNominal]);
-                        $items = array_merge($items, ['persentase' => 100 . '%']);
+                    $item = $item->map(function ($items) use ($jumlahNominal, $nominalJS, $persentaseJS) {
+                        $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                        if ($items['JENIS JASA'] == "JS") {
+                            $jumlahKonversi = $persentase * $nominalJS;
+                            $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
+                            $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
+                            $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
+                        }
                         return $items;
                     });
                 } else {
-                    $nominalJP = (($jumlahNominal * $persentaseJP) / 100);
-                    $nominalJS = (($jumlahNominal * $persentaseJS) / 100);
                     $item = $item->map(function ($items) use ($jumlahNominal, $nominalJS, $nominalJP, $persentaseJP, $persentaseJS) {
                         $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
                         if ($items['JENIS JASA'] == "JS") {
                             $jumlahKonversi = $persentase * $nominalJS;
                             $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
                             $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
                             $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
                         } else if ($items['JENIS JASA'] == "JP") {
                             $jumlahKonversi = $persentase * $nominalJP;
                             $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi]);
                             $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                            $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
                             $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
                         }
                         return $items;
                     });
-                    // $bebanGaji = collect($item)->where('JENIS JASA','JS')->all();
-                    // $PendapatanBPJS = collect($item)->where('JENIS JASA','JP')->all();
-                    // $array = $array + ['BEBAN GAJI' => collect($bebanGaji)->sum('jumlahSetelahDiKonversi')];
-                    // $array = $array + ['Pendapatan BPJS' => collect($PendapatanBPJS)->sum('jumlahSetelahDiKonversi')];
+                }
+                $bebanGaji = collect($item)->where('JENIS JASA', 'JS')->all();
+                $pendapatanBPJS = collect($item)->where('JENIS JASA', 'JP')->all();
+                if (count($bebanGaji) <= 0) {
+                    $bebanGaji = $jumlahNominal;
+                    $pendapatanBPJS = 0;
+                } else
+                if (count($pendapatanBPJS) <= 0) {
+                    $bebanGaji = 0;
+                    $pendapatanBPJS = $jumlahNominal;
+                } else {
+                    $bebanGaji = collect($bebanGaji)->sum(function ($item) {
+                        return intval($item['JUMLAH']);
+                    });
+                    $pendapatanBPJS = collect($pendapatanBPJS)->sum(function ($item) {
+                        return intval($item['JUMLAH']);
+                    });
                 }
 
-                $array = $array + ['Jumlah Nominal' => $jumlahNominal];
-                $array = $array + ['data' => $item->values()->all()];
-                return  $array;
-            });
-            Session::put('dataPasienDistributionBPJSRJ', $updatedArray);
-            $updatedArray = $array_BPJS_RJWithJenisJasa->pluck('data')->collapse();
-
-            $array_NonBPJS_RJ = $this->getPasienNonBPJS($pathPendapatanRJ, $pathBPJSRJ);
-
-            $combinedArray = $array_NonBPJS_RJ->merge($updatedArray);
-
-            $array_PiutangBPJS_RJ = $this->getPiutangBPJS($pathPendapatanRJ, $pathBPJSRJ);
-
-            $array_grouped_RJ = $updatedArray->groupBy('PASIEN')->map(function ($items) use ($dataBPJSRJ, $updatedArray) {
-                $rm = $items[0]['RM'];
-                $pasien = $items[0]['PASIEN'];
+                $rm = $item[0]['RM'];
+                $pasien = $item[0]['PASIEN'];
 
                 $tarifBPJS = $dataBPJSRJ->where('No_RM', $rm)->pluck('Total Tarif')->first();
                 $inacbg = $dataBPJSRJ->where('No_RM', $rm)->pluck('INACBG')->first();
-                $tarifRS = array_sum($updatedArray->where('RM', $rm)->pluck('JUMLAH')->all());
 
-                $dataKonversi = $items->map(function ($item) use ($tarifBPJS, $tarifRS) {
-                    $persentase = (intval($item['jumlahSetelahDiKonversi']) / $tarifRS) * 100;
+                $dataKonversi = $item->map(function ($items) use ($tarifBPJS, $jumlahNominal) {
+                    $persentase = (intval($items['jumlahSetelahDiKonversi']) / $jumlahNominal) * 100;
                     $jumlahKonversi = ($persentase / 100) * $tarifBPJS;
                     return [
-                        'JUMLAH' => intval($item['JUMLAH']),
-                        'Persentase' => number_format($persentase, 2) . '%',
+                        'JUMLAH' => intval($items['jumlahSetelahDiKonversi']),
+                        'Persentase' => $persentase,
                         'Jumlah_Konversi' => $jumlahKonversi
                     ];
                 })->values()->all();
 
-                return [
-                    'RM' => $rm,
-                    'PASIEN' => $pasien,
-                    'INACBG' => $inacbg,
-                    'data' => $items->values()->all(),
-                    'Total Tarif' => $tarifBPJS,
-                    'Tarif RS' => $tarifRS,
-                    'data_konversi' => $dataKonversi
-                ];
-            })->values()->all();
-
-            $dataGrouped = $combinedArray->groupBy(function ($item) {
-                return trim($item['KLS TARIF']);
-            })->map(function ($items) {
-                $kelasTarif = trim($items[0]['KLS TARIF']);
-                $jenisJasa = JenisJasaAkun::where('user_id', Auth::id())
-                    ->where('kelas_tarif', $kelasTarif)
-                    ->pluck('jenis_jasa')
-                    ->first();
-                return [
-                    'data' => $items->values()->all(),
-                    'jenis_jasa' => $jenisJasa
-                ];
-            })->toArray();
-            $dataFiltered_JP = array_filter($dataGrouped, function ($item) {
-                return $item['jenis_jasa'] === "JP";
+                $array = $array + ['RM' => $rm];
+                $array = $array + ['PASIEN' => $pasien];
+                $array = $array + ['tarifBPJS' => $tarifBPJS];
+                $array = $array + ['INACBG' => $inacbg];
+                $array = $array + ['Beban Gaji' => $bebanGaji];
+                $array = $array + ['Pendapatan BPJS' => $pendapatanBPJS];
+                $array = $array + ['Jumlah Nominal' => $jumlahNominal];
+                $array = $array + ['Data Konversi' => $dataKonversi];
+                $array = $array + ['data' => $item->values()->all()];
+                return  $array;
             });
+            $updatedArray = $array_BPJS_RJWithJenisJasa->values()->all();
+            Session::put('dataPasienDistributionBPJSRJ', $updatedArray);
 
-            $dataWithJumlahData_JP = array_map(function ($item) {
-                $jumlahData = count($item['data']);
-                $item['jumlah_data'] = $jumlahData;
-                return $item;
-            }, $dataFiltered_JP);
 
-            $totalJumlahData_JP = array_reduce($dataWithJumlahData_JP, function ($carry, $item) {
-                return $carry + $item['jumlah_data'];
-            }, 0);
-
-            $dataFiltered_JS = array_filter($dataGrouped, function ($item) {
-                return $item['jenis_jasa'] === "JS";
-            });
-
-            $dataWithJumlahData_JS = array_map(function ($item) {
-                $jumlahData = count($item['data']);
-                $item['jumlah_data'] = $jumlahData;
-                return $item;
-            }, $dataFiltered_JS);
-
-            $totalJumlahData_JS = array_reduce($dataWithJumlahData_JS, function ($carry, $item) {
-                return $carry + $item['jumlah_data'];
-            }, 0);
-
-            Session::put('jasaPelayananRJ', $dataFiltered_JP);
-            Session::put('jasaSaranaRJ', $dataFiltered_JS);
-
+            $array_PiutangBPJS_RJ = $this->getPiutangBPJS($pathPendapatanRJ, $pathBPJSRJ);
+            $totalJumlahData_JP = 0;
+            $totalJumlahData_JS = 0;
             $response = $response + [
-                'pasienBPJS_RJ' => $array_grouped_RJ,
+                'pasienBPJS_RJ' => $updatedArray,
                 'totalJPRJ' => $totalJumlahData_JP,
                 'totalJSRJ' => $totalJumlahData_JS,
                 'piutangBPJS_RJ' => $array_PiutangBPJS_RJ
@@ -1274,49 +1245,155 @@ class App extends Controller
                 }, 0);
                 // akhir dari perhitungan pasien non bpjs
 
-
                 //perhitunga pasien bpjs
                 $dataBPJSRI = collect($this->getDataBpjs($pathBPJSRI, 'RI'));
 
+                $persentaseJP = PercentageJsJp::where('user_id', Auth::id())->first()['jp'];
+                $persentaseJS = PercentageJsJp::where('user_id', Auth::id())->first()['js'];
+
                 // PASIEN BPJS
-
-
-                $pasienBPJS = collect(Session::get('dataPasienDistributionBPJSRI'));
-
-                $array_grouped_RI = $pasienBPJS->groupBy('PASIEN')->map(function ($items) use ($dataBPJSRI, $pasienBPJS) {
-                    $rm = $items[0]['RM'];
-
-                    $tarifBPJS = $dataBPJSRI->where('No_RM', $rm)->pluck('Total Tarif')->first();
-                    $tarifRS = array_sum($pasienBPJS->where('RM', $rm)->pluck('JUMLAH')->all());
-
-                    $dataKonversi = $items->map(function ($item) use ($tarifBPJS, $tarifRS) {
-                        $persentase = (intval($item['JUMLAH']) / $tarifRS) * 100;
-                        $jumlahKonversi = ($persentase / 100) * $tarifBPJS;
-                        return [
-                            'Kelas Tarif' => $item['KLS TARIF'],
-                            'Jumlah_Konversi' => $jumlahKonversi
-                        ];
-                    })->values()->all();
-                    return  $dataKonversi;
-                })->values()->all();
-
-                $array_grouped_by_kelas_tarif = collect($array_grouped_RI)->groupBy(function ($item) {
-                    return $item[0]['Kelas Tarif'];
-                })->map(function ($items) {
-                    $jumlah = $items->sum(function ($item) {
-                        return $item[0]['Jumlah_Konversi'];
+                $array_BPJS_RI = $this->getPasienBPJS($pathPendapatanRI, $pathBPJSRI);
+                $kelasTarifMapping = collect(JenisJasaAkun::where('user_id', Auth::id())->get());
+                $array_BPJS_RIWithJenisJasa = $array_BPJS_RI->map(function ($item) use ($kelasTarifMapping, $array_BPJS_RI, $persentaseJP, $persentaseJS) {
+                    $kelasTarif = trim($item['KLS TARIF']);
+                    $jenisJasa = $kelasTarifMapping->where('kelas_tarif', $kelasTarif)->first()['jenis_jasa'];
+                    $jumlahNominalPerPasien = collect($array_BPJS_RI)->where('RM', $item['RM'])->all();
+                    $jumlahNominalPerPasien = collect($jumlahNominalPerPasien)->sum(function ($items) {
+                        return intval($items['JUMLAH']);
                     });
 
-                    return [
-                        'kelas tarif' => $items[0][0]['Kelas Tarif'],
-                        'jumlah' => $jumlah
-                    ];
+                    // Simpan hasil penggabungan ke dalam variabel $item
+                    $item = array_merge($item, ['JENIS JASA' => $jenisJasa]);
+                    $item = array_merge($item, ['JUMLAH NOMINAL' => $jumlahNominalPerPasien]);
+
+                    return $item;
+                });
+
+                $array_BPJS_RIWithJenisJasa = $array_BPJS_RIWithJenisJasa->groupBy('PASIEN')->map(function ($item) use ($dataBPJSRI, $persentaseJP, $persentaseJS, $array_BPJS_RIWithJenisJasa) {
+                    $array_BPJS_RIWithJenisJasaJS = collect($array_BPJS_RIWithJenisJasa->where('RM', $item[0]['RM'])->where('JENIS JASA', 'JS')->all());
+                    $array_BPJS_RIWithJenisJasaJP = collect($array_BPJS_RIWithJenisJasa->where('RM', $item[0]['RM'])->where('JENIS JASA', 'JP')->all());
+                    $jumlahNominal = $item->sum(function ($items) {
+                        return intval($items['JUMLAH']);
+                    });
+
+                    $rm = $item[0]['RM'];
+                    $pasien = $item[0]['PASIEN'];
+
+                    $tarifBPJS = $dataBPJSRI->where('No_RM', $rm)->pluck('Total Tarif')->first();
+                    $inacbg = $dataBPJSRI->where('No_RM', $rm)->pluck('INACBG')->first();
+
+                    $array = [];
+                    $nominalJP = (($jumlahNominal * $persentaseJP) / 100);
+                    $nominalJS = (($jumlahNominal * $persentaseJS) / 100);
+                    if (count($array_BPJS_RIWithJenisJasaJS) == 0) {
+                        $item = $item->map(function ($items) use ($jumlahNominal, $nominalJP, $persentaseJP, $persentaseJS, $tarifBPJS) {
+                            $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                            if ($items['JENIS JASA'] == "JP") {
+                                $jumlahKonversi = $persentase * $nominalJP;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
+                            }
+                            return $items;
+                        });
+                    }
+                    if (count($array_BPJS_RIWithJenisJasaJP) == 0) {
+                        $item = $item->map(function ($items) use ($jumlahNominal, $nominalJS, $persentaseJS, $tarifBPJS) {
+                            $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                            if ($items['JENIS JASA'] == "JS") {
+                                $jumlahKonversi = $persentase * $nominalJS;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
+                            }
+                            return $items;
+                        });
+                    } else {
+                        $item = $item->map(function ($items) use ($jumlahNominal, $nominalJS, $nominalJP, $persentaseJP, $persentaseJS, $tarifBPJS) {
+                            $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                            if ($items['JENIS JASA'] == "JS") {
+                                $jumlahKonversi = $persentase * $nominalJS;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
+                            } else if ($items['JENIS JASA'] == "JP") {
+                                $jumlahKonversi = $persentase * $nominalJP;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
+                            }
+                            return $items;
+                        });
+                    }
+                    $bebanGaji = collect($item)->where('JENIS JASA', 'JS')->all();
+                    $pendapatanBPJS = collect($item)->where('JENIS JASA', 'JP')->all();
+                    if (count($bebanGaji) <= 0) {
+                        $bebanGaji = $jumlahNominal;
+                        $pendapatanBPJS = 0;
+                    } else
+                if (count($pendapatanBPJS) <= 0) {
+                        $bebanGaji = 0;
+                        $pendapatanBPJS = $jumlahNominal;
+                    } else {
+                        $bebanGaji = collect($bebanGaji)->sum(function ($item) {
+                            return intval($item['JUMLAH']);
+                        });
+                        $pendapatanBPJS = collect($pendapatanBPJS)->sum(function ($item) {
+                            return intval($item['JUMLAH']);
+                        });
+                    }
+
+                    $array = $array + ['RM' => $rm];
+                    $array = $array + ['PASIEN' => $pasien];
+                    $array = $array + ['tarifBPJS' => $tarifBPJS];
+                    $array = $array + ['INACBG' => $inacbg];
+                    $array = $array + ['Beban Gaji' => $bebanGaji];
+                    $array = $array + ['Pendapatan BPJS' => $pendapatanBPJS];
+                    $array = $array + ['Jumlah Nominal' => $jumlahNominal];
+                    $array = $array + ['data' => $item->values()->all()];
+                    return  $array;
+                });
+                $updatedArray = $array_BPJS_RIWithJenisJasa->values()->all();
+                $updatedArray = $array_BPJS_RIWithJenisJasa->flatMap(function ($item) {
+                    $data = collect($item['data'])->map(function ($dataItem) use ($item) {
+                        $dataItem['RM'] = $item['RM'];
+                        $dataItem['PASIEN'] = $item['PASIEN'];
+                        $dataItem['tarifBPJS'] = $item['tarifBPJS'];
+                        $dataItem['INACBG'] = $item['INACBG'];
+                        $dataItem['Beban Gaji'] = $item['Beban Gaji'];
+                        $dataItem['Pendapatan BPJS'] = $item['Pendapatan BPJS'];
+                        $dataItem['Jumlah Nominal'] = $item['Jumlah Nominal'];
+                        return $dataItem;
+                    });
+
+                    return $data;
                 })->values()->all();
-                $breakdownRIBPJS = collect($array_grouped_by_kelas_tarif)->groupBy('kelas tarif')->map(function ($items, $kelasTarif) use ($pasienBPJS) {
-                    $dataKategoriPendapatanId = JenisJasaAkun::where('kelas_tarif', trim($kelasTarif))->first()['kategori_pendapatans_id'];
+
+
+                $breakdownRIBPJS = collect($updatedArray)->groupBy('KLS TARIF')->map(function ($items) {
+                    $dataKategoriPendapatanId = JenisJasaAkun::where('kelas_tarif', trim($items[0]['KLS TARIF']))->first()['kategori_pendapatans_id'];
+                    $jumlah =   $items->sum(function ($item) {
+                        return intval($item['JUMLAH']);
+                    });
                     return [
-                        'KLS TARIF' => trim($kelasTarif),
-                        'jumlah' => $items[0]['jumlah'],
+                        "KLS TARIF" => $items[0]['KLS TARIF'],
+                        "jumlah" => $jumlah,
                         'kategori_pendapatanId' => $dataKategoriPendapatanId
                     ];
                 })->filter(function ($item) {
@@ -1351,14 +1428,14 @@ class App extends Controller
                     $jumlah = $items->sum('jumlah');
                     return [
                         'kategori' => $items[0]['kategori'],
-                        'jumlah' => $jumlah
+                        'jumlah' => intval($jumlah)
                     ];
                 })->values()->all();
 
 
                 $response = $response + [
-                    'pendapatanRINonBPJS' => $totalJumlahKonversiNonBPJS,
-                    'pendapatanRIBPJS' => $totalJumlahKonversiBPJS,
+                    'pendapatanRINonBPJS' => intval($totalJumlahKonversiNonBPJS),
+                    'pendapatanRIBPJS' => intval($totalJumlahKonversiBPJS),
                     'laporanRI' => $laporanRI
                 ];
             }
@@ -1403,52 +1480,157 @@ class App extends Controller
                 // akhir dari perhitungan pasien non bpjs
 
 
-                //perhitunga pasien bpjs
                 $dataBPJSRJ = collect($this->getDataBpjs($pathBPJSRJ, 'RJ'));
                 // PASIEN BPJS
-
-                $pasienBPJS = collect(Session::get('dataPasienDistributionBPJSRJ'));
-                $array_grouped_RJ = $pasienBPJS->groupBy('PASIEN')->map(function ($items) use ($dataBPJSRJ, $pasienBPJS) {
-                    $rm = $items[0]['RM'];
-                    $tarifBPJS = $dataBPJSRJ->where('No_RM', $rm)->pluck('Total Tarif')->first();
-                    $tarifRS = array_sum($pasienBPJS->where('RM', $rm)->pluck('JUMLAH')->all());
-
-                    $dataKonversi = $items->map(function ($item) use ($tarifBPJS, $tarifRS) {
-                        $persentase = (intval($item['JUMLAH']) / $tarifRS) * 100;
-                        $jumlahKonversi = ($persentase / 100) * $tarifBPJS;
-                        return [
-                            'Kelas Tarif' => $item['KLS TARIF'],
-                            'Jumlah_Konversi' => $jumlahKonversi
-                        ];
-                    })->values()->all();
-                    return  $dataKonversi;
-                })->values()->all();
-
-                $array_grouped_by_kelas_tarif = collect($array_grouped_RJ)->groupBy(function ($item) {
-                    return $item[0]['Kelas Tarif'];
-                })->map(function ($items) {
-                    $jumlah = $items->sum(function ($item) {
-                        return $item[0]['Jumlah_Konversi'];
+                $array_BPJS_RJ = $this->getPasienBPJS($pathPendapatanRJ, $pathBPJSRJ);
+                $kelasTarifMapping = collect(JenisJasaAkun::where('user_id', Auth::id())->get());
+                $array_BPJS_RJWithJenisJasa = $array_BPJS_RJ->map(function ($item) use ($kelasTarifMapping, $array_BPJS_RJ, $persentaseJP, $persentaseJS) {
+                    $kelasTarif = trim($item['KLS TARIF']);
+                    $jenisJasa = $kelasTarifMapping->where('kelas_tarif', $kelasTarif)->first()['jenis_jasa'];
+                    $jumlahNominalPerPasien = collect($array_BPJS_RJ)->where('RM', $item['RM'])->all();
+                    $jumlahNominalPerPasien = collect($jumlahNominalPerPasien)->sum(function ($items) {
+                        return intval($items['JUMLAH']);
                     });
 
-                    return [
-                        'kelas tarif' => $items[0][0]['Kelas Tarif'],
-                        'jumlah' => $jumlah
-                    ];
+                    // Simpan hasil penggabungan ke dalam variabel $item
+                    $item = array_merge($item, ['JENIS JASA' => $jenisJasa]);
+                    $item = array_merge($item, ['JUMLAH NOMINAL' => $jumlahNominalPerPasien]);
+
+                    return $item;
+                });
+
+                $array_BPJS_RJWithJenisJasa = $array_BPJS_RJWithJenisJasa->groupBy('PASIEN')->map(function ($item) use ($dataBPJSRJ, $persentaseJP, $persentaseJS, $array_BPJS_RJWithJenisJasa) {
+                    $array_BPJS_RJWithJenisJasaJS = collect($array_BPJS_RJWithJenisJasa->where('RM', $item[0]['RM'])->where('JENIS JASA', 'JS')->all());
+                    $array_BPJS_RJWithJenisJasaJP = collect($array_BPJS_RJWithJenisJasa->where('RM', $item[0]['RM'])->where('JENIS JASA', 'JP')->all());
+                    $jumlahNominal = $item->sum(function ($items) {
+                        return intval($items['JUMLAH']);
+                    });
+
+                    $rm = $item[0]['RM'];
+                    $pasien = $item[0]['PASIEN'];
+
+                    $tarifBPJS = $dataBPJSRJ->where('No_RM', $rm)->pluck('Total Tarif')->first();
+                    $inacbg = $dataBPJSRJ->where('No_RM', $rm)->pluck('INACBG')->first();
+
+                    $array = [];
+                    $nominalJP = (($jumlahNominal * $persentaseJP) / 100);
+                    $nominalJS = (($jumlahNominal * $persentaseJS) / 100);
+                    if (count($array_BPJS_RJWithJenisJasaJS) == 0) {
+                        $item = $item->map(function ($items) use ($jumlahNominal, $nominalJP, $persentaseJP, $persentaseJS, $tarifBPJS) {
+                            $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                            if ($items['JENIS JASA'] == "JP") {
+                                $jumlahKonversi = $persentase * $nominalJP;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
+                            }
+                            return $items;
+                        });
+                    }
+                    if (count($array_BPJS_RJWithJenisJasaJP) == 0) {
+                        $item = $item->map(function ($items) use ($jumlahNominal, $nominalJS, $persentaseJS, $tarifBPJS) {
+                            $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                            if ($items['JENIS JASA'] == "JS") {
+                                $jumlahKonversi = $persentase * $nominalJS;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
+                            }
+                            return $items;
+                        });
+                    } else {
+                        $item = $item->map(function ($items) use ($jumlahNominal, $nominalJS, $nominalJP, $persentaseJP, $persentaseJS, $tarifBPJS) {
+                            $persentase = floatval($items['JUMLAH']) / $jumlahNominal;
+                            if ($items['JENIS JASA'] == "JS") {
+                                $jumlahKonversi = $persentase * $nominalJS;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJS]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (B. Gaji)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJS . '%']);
+                            } else if ($items['JENIS JASA'] == "JP") {
+                                $jumlahKonversi = $persentase * $nominalJP;
+                                $persentase = (intval($jumlahKonversi) / $jumlahNominal) * 100;
+                                $jumlahKonversi2 = ($persentase / 100) * $tarifBPJS;
+                                $items = array_merge($items, ['jumlahSetelahDistribution' => $jumlahKonversi]);
+                                $items = array_merge($items, ['jumlahSetelahDiKonversi' => $jumlahKonversi2]);
+                                $items = array_merge($items, ['jumlahHasilPersentase' => $nominalJP]);
+                                $items = array_merge($items, ['sisa_nominal' => number_format((intval(intval($items['JUMLAH']) - $jumlahKonversi)), 0, ',', '.') . ' (P. BPJS)']);
+                                $items = array_merge($items, ['persentase' => $persentaseJP . '%']);
+                            }
+                            return $items;
+                        });
+                    }
+                    $bebanGaji = collect($item)->where('JENIS JASA', 'JS')->all();
+                    $pendapatanBPJS = collect($item)->where('JENIS JASA', 'JP')->all();
+                    if (count($bebanGaji) <= 0) {
+                        $bebanGaji = $jumlahNominal;
+                        $pendapatanBPJS = 0;
+                    } else
+                if (count($pendapatanBPJS) <= 0) {
+                        $bebanGaji = 0;
+                        $pendapatanBPJS = $jumlahNominal;
+                    } else {
+                        $bebanGaji = collect($bebanGaji)->sum(function ($item) {
+                            return intval($item['JUMLAH']);
+                        });
+                        $pendapatanBPJS = collect($pendapatanBPJS)->sum(function ($item) {
+                            return intval($item['JUMLAH']);
+                        });
+                    }
+
+                    $array = $array + ['RM' => $rm];
+                    $array = $array + ['PASIEN' => $pasien];
+                    $array = $array + ['tarifBPJS' => $tarifBPJS];
+                    $array = $array + ['INACBG' => $inacbg];
+                    $array = $array + ['Beban Gaji' => $bebanGaji];
+                    $array = $array + ['Pendapatan BPJS' => $pendapatanBPJS];
+                    $array = $array + ['Jumlah Nominal' => $jumlahNominal];
+                    $array = $array + ['data' => $item->values()->all()];
+                    return  $array;
+                });
+                $updatedArray = $array_BPJS_RJWithJenisJasa->values()->all();
+                $updatedArray = $array_BPJS_RJWithJenisJasa->flatMap(function ($item) {
+                    $data = collect($item['data'])->map(function ($dataItem) use ($item) {
+                        $dataItem['RM'] = $item['RM'];
+                        $dataItem['PASIEN'] = $item['PASIEN'];
+                        $dataItem['tarifBPJS'] = $item['tarifBPJS'];
+                        $dataItem['INACBG'] = $item['INACBG'];
+                        $dataItem['Beban Gaji'] = $item['Beban Gaji'];
+                        $dataItem['Pendapatan BPJS'] = $item['Pendapatan BPJS'];
+                        $dataItem['Jumlah Nominal'] = $item['Jumlah Nominal'];
+                        return $dataItem;
+                    });
+
+                    return $data;
                 })->values()->all();
 
-                $breakdownRJBPJS = collect($array_grouped_by_kelas_tarif)->groupBy('kelas tarif')->map(function ($items, $kelasTarif) use ($pasienBPJS) {
-                    $dataKategoriPendapatanId = JenisJasaAkun::where('kelas_tarif', trim($kelasTarif))->first()['kategori_pendapatans_id'];
+
+                $breakdownRIBPJS = collect($updatedArray)->groupBy('KLS TARIF')->map(function ($items) {
+                    $dataKategoriPendapatanId = JenisJasaAkun::where('kelas_tarif', trim($items[0]['KLS TARIF']))->first()['kategori_pendapatans_id'];
+                    $jumlah =   $items->sum(function ($item) {
+                        return intval($item['JUMLAH']);
+                    });
                     return [
-                        'KLS TARIF' => trim($kelasTarif),
-                        'jumlah' => $items[0]['jumlah'],
+                        "KLS TARIF" => $items[0]['KLS TARIF'],
+                        "jumlah" => $jumlah,
                         'kategori_pendapatanId' => $dataKategoriPendapatanId
                     ];
                 })->filter(function ($item) {
                     return isset($item);
                 })->values()->all();
                 $kategoriPendapatan = collect(KategoriPendapatan::all());
-                $groupedData = collect($breakdownRJBPJS)->groupBy(function ($item) use ($kategoriPendapatan) {
+                $groupedData = collect($breakdownRIBPJS)->groupBy(function ($item) use ($kategoriPendapatan) {
                     $kategoriId = $item['kategori_pendapatanId'];
                     $kategori = $kategoriPendapatan->firstWhere('id', $kategoriId);
 
@@ -1476,13 +1658,13 @@ class App extends Controller
                     $jumlah = $items->sum('jumlah');
                     return [
                         'kategori' => $items[0]['kategori'],
-                        'jumlah' => $jumlah
+                        'jumlah' => intval($jumlah)
                     ];
                 })->values()->all();
 
                 $response = $response + [
-                    'pendapatanRJNonBPJS' => $totalJumlahKonversiNonBPJS,
-                    'pendapatanRJBPJS' => $totalJumlahKonversiBPJS,
+                    'pendapatanRJNonBPJS' => intval($totalJumlahKonversiNonBPJS),
+                    'pendapatanRJBPJS' => intval( $totalJumlahKonversiBPJS),
                     'laporanRJ' => $laporanRJ
                 ];
             }

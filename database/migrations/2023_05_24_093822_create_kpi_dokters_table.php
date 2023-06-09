@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('kpi_dokters', function (Blueprint $table) {
             $table->id();
             $table->string('kelompok');
-            $table->integer('nilai');
-            $table->integer('bobot');
+            $table->string('nilai');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
+            $table->unsignedBigInteger('kategori_id');
+            $table->foreign('kategori_id')->references('id')->on('kpi_kategoris');
             $table->timestamps();
         });
     }
